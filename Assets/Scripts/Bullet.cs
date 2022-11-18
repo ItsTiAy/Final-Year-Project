@@ -35,8 +35,7 @@ public class Bullet : MonoBehaviour
         }
         else if (collision.gameObject.CompareTag("Wall"))
         {
-            Debug.Log("Wall");
-
+            // Checks if the number of bounces already done is less than the max it can do
             if (numBounces < maxBounces)
             {
                 // Gets array of contact points between the bullet and the wall
@@ -47,22 +46,23 @@ public class Bullet : MonoBehaviour
 
                 // Sets new velocity to be the reflection of its previous velocity
 
-                GetComponent<Rigidbody2D>().velocity = Vector2.Reflect(GetComponent<Rigidbody2D>().velocity, contacts[0].normal);
+                rb.velocity = Vector2.Reflect(rb.velocity, contacts[0].normal);
             }
             else
             {
                 DestroyBullet();
             }
-
             numBounces++;
         }
         else if (collision.gameObject.CompareTag("Enemy"))
         {
+            // Decreases enemy health by 1 and then destroys the bullet
             collision.gameObject.GetComponent<Enemy>().DecreaseHealth();
             DestroyBullet();
         }
         else if (collision.gameObject.CompareTag("Player"))
         {
+            // Decreases the player's health by 1 and then destroys the bullet
             collision.gameObject.GetComponent<Player>().DecreaseHealth();
             DestroyBullet();
         }
@@ -70,7 +70,11 @@ public class Bullet : MonoBehaviour
 
     private void DestroyBullet()
     {
+        // Stops particle system from producing more particles
         trailParticles.Stop();
+
+        // Detatches from the bullet gameobject so that it is not destroyed when the bullet is
+        // Allows particles to linger for a bit after the bullet has been destroyed
         transform.DetachChildren();
         Destroy(gameObject);
     }
