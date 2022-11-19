@@ -4917,7 +4917,7 @@ Rigidbody2D:
   m_AngularDrag: 0
   m_GravityScale: 0
   m_Material: {fileID: 0}
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
@@ -4935,6 +4935,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   trailParticles: {fileID: 597902255}
   rb: {fileID: 1362846775}
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!61 &129414402834934606
 BoxCollider2D:
   m_ObjectHideFlags: 0

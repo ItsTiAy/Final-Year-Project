@@ -33,6 +33,27 @@ public class Player : MonoBehaviour
             //gun.Play();
             Fire();
         }
+        /*
+        Ray2D ray = new(bulletSpawn.position, bulletSpawn.right);
+
+        Debug.DrawRay(ray.origin, ray.direction, Color.green);
+
+
+        for (int i = 0; i < 2; i++)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
+            if (hit)
+            {
+                if (hit.transform.CompareTag("Wall"))
+                {
+                    Vector2 newDirection = Vector2.Reflect(ray.direction, hit.normal);
+
+                    Debug.DrawRay(hit.point + (newDirection * 0.01f), newDirection, Color.magenta);
+                    ray = new Ray2D(hit.point + (newDirection * 0.01f), newDirection);
+                }
+            }
+        }
+        */
     }
 
     private void FixedUpdate()
