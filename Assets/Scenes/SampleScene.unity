@@ -793,10 +793,10 @@ Camera:
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.0011037528
-    y: 0.060784318
-    width: 0.9977925
-    height: 0.87843144
+    x: 0
+    y: 0.097122304
+    width: 1
+    height: 0.80575544
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -8098,12 +8098,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07102615193c12543a4b57c9e657c70b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 12
   rb: {fileID: 1434283717}
   turret: {fileID: 795360041}
   bulletSpawn: {fileID: 1815118425}
   cam: {fileID: 519420031}
   bullet: {fileID: 1362846775, guid: c86b88b3123a04b47882c373aa0fa9a2, type: 3}
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!61 &1434283721
 BoxCollider2D:
   m_ObjectHideFlags: 0
