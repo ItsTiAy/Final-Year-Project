@@ -1,19 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
-public class Bullet : MonoBehaviour
+public abstract class Bullet : MonoBehaviour
 {
     public ParticleSystem trailParticles;
     public Rigidbody2D rb;
     public LayerMask layerMask;
 
-    private const int maxBounces = 1;
-    private const float bulletLifeTime = 3f;
-    private const float bulletSpeed = 5f;
+    protected int maxBounces;
+    protected float bulletLifeTime;
+    protected float bulletSpeed;
 
     private Transform bulletOrigin;
 

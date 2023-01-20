@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -8,7 +9,6 @@ public class Player : MonoBehaviour
     public Rigidbody2D rb;
     public Transform turret;
     public Transform bulletSpawn;
-    public Camera cam;
     public Rigidbody2D bullet;
     public LayerMask layerMask;
 
@@ -16,13 +16,21 @@ public class Player : MonoBehaviour
     private Vector2 mousePos;
     private Bullet bulletClass;
     private int health = 1;
-    //private float moveSpeed = 5f;
+    private float moveSpeed = 5f;
     private float maxBulletDistance;
+    private Camera cam;
+
+    private Quaternion newDirection;
+    private Quaternion prevTargetRotation;
 
     private void Start()
     {
         bulletClass = bullet.GetComponent<Bullet>();
         maxBulletDistance = bulletClass.BulletSpeed * bulletClass.BulletLifeTime;
+        Debug.Log(bulletClass.BulletSpeed);
+        Debug.Log(bulletClass.BulletLifeTime);
+        cam = Camera.main;
+        GameController.instance.players.Add(this);
     }
 
     void Update()
@@ -52,7 +60,7 @@ public class Player : MonoBehaviour
 
         for (int i = 0; i < bulletClass.MaxBounces + 1; i++)
         {
-            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, 100, layerMask);
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, 100);
 
             currentRayDistance = Mathf.Min(hit.distance, maxBulletDistance - currentTotalDistance);
             currentTotalDistance += currentRayDistance;
@@ -73,8 +81,26 @@ public class Player : MonoBehaviour
     // Moves the player in the input direction at the movement speed
     private void Move()
     {
-        //rb.velocity = PixelPerfectClamp(moveSpeed * 16 * Time.fixedDeltaTime * movement); // Probably need some pixel perfect movement
-        rb.MovePosition(rb.position + (movement / 16));
+        //rb.velocity = moveSpeed * Time.fixedDeltaTime * movement.normalized;
+        //rb.MovePosition(rb.position + (movement / 16));
+
+        rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * movement.normalized);
+
+        // Rotates the tank towards the directon it is going in
+
+        if (movement != Vector2.zero)
+        {
+            Quaternion targetRotationPos = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 90) * movement);
+            Quaternion targetRotationNeg = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 90) * -movement);
+
+            float targetAnglePos = Quaternion.Angle(transform.rotation, targetRotationPos);
+            float targetAngleNeg = Quaternion.Angle(transform.rotation, targetRotationNeg);
+
+            Quaternion targetRotation = targetAnglePos < targetAngleNeg ? targetRotationPos : targetRotationNeg;
+
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 1000f * Time.fixedDeltaTime);
+        }
+
     }
 
     // Points the turret towards the mouse 
@@ -94,7 +120,14 @@ public class Player : MonoBehaviour
 
         if (health <= 0)
         {
-            Destroy(gameObject);
+            DestroyPlayer();
+            LevelManager.instance.ReloadCurrentLevel();
         }
+    }
+
+    public void DestroyPlayer()
+    {
+        GameController.instance.players.Remove(this);
+        Destroy(gameObject);
     }
 }

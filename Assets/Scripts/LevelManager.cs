@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Tilemaps;
 using static LevelManager;
 
@@ -11,6 +12,16 @@ public class LevelManager : MonoBehaviour
 
     public List<TileBase> tiles;
     public List<Tilemap> tilemaps;
+
+    public GameObject player;
+    public Transform playerSpawn;
+
+    public List<GameObject> enemies;
+    public GameObject enemySpawns;
+
+    public int currentLevel = 1;
+
+    private Dictionary<string, GameObject> enemiesDict = new Dictionary<string, GameObject>();
 
     private void Awake()
     {
@@ -25,10 +36,23 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        foreach (GameObject enemy in enemies)
+        {
+            enemiesDict.Add(enemy.name, enemy);
+        }
+
+        int levelInSave = 1;
+        LoadLevel(levelInSave);
+    }
+
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.S)) SaveLevel();
-        if (Input.GetKeyDown(KeyCode.L)) LoadLevel();
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.S)) SaveLevel();
+        if (Input.GetKeyDown(KeyCode.Alpha1)) LoadLevel(1);
+        if (Input.GetKeyDown(KeyCode.Alpha2)) LoadLevel(2);
+        if (Input.GetKeyDown(KeyCode.Alpha3)) LoadLevel(3);
     }
 
     public void SaveLevel()
@@ -64,19 +88,43 @@ public class LevelManager : MonoBehaviour
             levelData.tiles.Add(tileData);
         }
 
+        foreach(Transform spawn in enemySpawns.transform)
+        {
+            EnemyData enemyData = new EnemyData();
+            enemyData.enemyName = spawn.tag;
+            enemyData.enemyPosition = spawn.position;
+
+            levelData.enemies.Add(enemyData);
+        }
+
+        PlayerData playerData = new PlayerData();
+        playerData.playerSpawn = playerSpawn.position;
+
+        levelData.player = playerData;
+
         // Writes the level data to a json file
-        string json = JsonUtility.ToJson(levelData);
+        string json = JsonUtility.ToJson(levelData, true);
         string level = "level";
         File.WriteAllText(Application.dataPath + "/" + level + ".json", json);
     }
 
-    public void LoadLevel()
+    public void LoadLevel(int levelNumber)
     {
         Debug.Log("Load Level");
 
+        Pathfinding.Initialize();
+
+        if (levelNumber > GameController.totalNumLevels)
+        {
+            Debug.Log("Probably game win");
+            return;
+        }
+
+        currentLevel = levelNumber;
+        ClearLevel();
+
         // Reads the level data from the json file
-        string level = "level";
-        string json = File.ReadAllText(Application.dataPath + "/" + level + ".json");
+        string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
         LevelData levelData = JsonUtility.FromJson<LevelData>(json);
 
         // Loops for each type of tile in the level
@@ -91,17 +139,65 @@ public class LevelManager : MonoBehaviour
             {
                 // Sets the tile at the coordinates with the current tile type in the current tilemap
                 tilemaps[i].SetTile(new Vector3Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j]), tiles[i]);
+
+                Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].SetIsWalkable(false);
+                //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
             }
         }
-        
+
+        GameController.instance.enemiesRemaining = 0;
+
+        Instantiate(player, levelData.player.playerSpawn, Quaternion.identity);
+
+        foreach (EnemyData enemy in levelData.enemies)
+        {
+            Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity);
+            GameController.instance.enemiesRemaining++;
+        }
+    }
+
+    public void LoadNextLevel()
+    {
+        LoadLevel(currentLevel + 1);
+    }
+
+    public void ReloadCurrentLevel()
+    {
+        LoadLevel(currentLevel);
+    }
+
+    private void ClearLevel()
+    {
+        GameObject[] enemyObjects = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject[] bulletObjects = GameObject.FindGameObjectsWithTag("Bullet");
+        GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
+        // Add bit for particle systems
+
+        foreach (GameObject playerObject in playerObjects)
+        {
+            if (playerObject != null)
+            {
+                playerObject.GetComponent<Player>().DestroyPlayer();
+            }
+        }
+
+        foreach (GameObject enemyObject in enemyObjects)
+        {
+            Destroy(enemyObject);
+        }
+
+        foreach (GameObject bulletObject in bulletObjects)
+        {
+            Destroy(bulletObject);
+        }
     }
 
     [System.Serializable]
     public class LevelData
     {
         public List<TileData> tiles = new List<TileData>();
-        //public List<EnemyData> enemies = new List<EnemyData>();
-        //public Vector2Int playerSpawn;
+        public PlayerData player;
+        public List<EnemyData> enemies = new List<EnemyData>();
     }
 
     [System.Serializable]
@@ -114,11 +210,16 @@ public class LevelManager : MonoBehaviour
     }
 
     [System.Serializable]
+    public class PlayerData
+    {
+        public Vector2 playerSpawn;
+    }
+
+    [System.Serializable]
     public class EnemyData
     {
         public string enemyName;
 
-        public List<int> enemyPositionsX = new List<int>();
-        public List<int> enemyPositionsY = new List<int>();
+        public Vector2 enemyPosition;
     }
 }

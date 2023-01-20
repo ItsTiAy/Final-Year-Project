@@ -4930,7 +4930,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3792349701610683935}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fae52233e5ed754993216afb0cd338a, type: 3}
+  m_Script: {fileID: 11500000, guid: 32accd019ac65bd4cb148c4016eb8085, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   trailParticles: {fileID: 597902255}
