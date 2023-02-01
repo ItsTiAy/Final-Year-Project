@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -16,33 +15,46 @@ public class Player : MonoBehaviour
     private Vector2 mousePos;
     private Bullet bulletClass;
     private int health = 1;
-    private float moveSpeed = 5f;
+    private float moveSpeed = 3f;
     private float maxBulletDistance;
+    private int ammo;
     private Camera cam;
 
+    private bool reloading = false;
     private Quaternion newDirection;
     private Quaternion prevTargetRotation;
 
     private void Start()
     {
-        bulletClass = bullet.GetComponent<Bullet>();
+        bulletClass = GameController.instance.bulletTypes[SaveManager.instance.GetSaveData().primaryWeaponIndex];
+        ammo = bulletClass.AmmoCapacity;
+
+        GameController.instance.UpdateAmmoUI(ammo);
+
+        //GameController.instance.primaryWeapons[0];
+        bullet = bulletClass.rb;
         maxBulletDistance = bulletClass.BulletSpeed * bulletClass.BulletLifeTime;
-        Debug.Log(bulletClass.BulletSpeed);
-        Debug.Log(bulletClass.BulletLifeTime);
+        //Debug.Log(bulletClass.BulletSpeed);
+        //Debug.Log(bulletClass.BulletLifeTime);
         cam = Camera.main;
-        GameController.instance.players.Add(this);
+        //GameController.instance.players.Add(this);
+
+        //Debug.Log(moveSpeed);
     }
 
     void Update()
     {
-        movement.x = Input.GetAxisRaw("Horizontal");
-        movement.y = Input.GetAxisRaw("Vertical");
-
-        mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
-
-        if (Input.GetMouseButtonDown(0))
+        if (!GameController.isPaused)
         {
-            Fire();
+            movement.x = Input.GetAxisRaw("Horizontal");
+            movement.y = Input.GetAxisRaw("Vertical");
+
+            mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
+
+            if (Input.GetMouseButtonDown(0) && !reloading)
+            {
+                Fire();
+            }
         }
     }
 
@@ -112,6 +124,27 @@ public class Player : MonoBehaviour
     private void Fire()
     {
         Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation /*Quaternion.Euler(0, 0, 0)*/);
+        ammo--;
+
+        GameController.instance.UpdateAmmoUI(ammo);
+
+        if (ammo <= 0)
+        {
+            StartCoroutine(Reload());
+        }
+    }
+
+    private IEnumerator Reload()
+    {
+        reloading = true;
+
+        yield return new WaitForSeconds(bulletClass.ReloadSpeed);
+
+        ammo = bulletClass.AmmoCapacity;
+
+        GameController.instance.UpdateAmmoUI(ammo);
+
+        reloading = false;
     }
 
     public void DecreaseHealth()
@@ -129,5 +162,10 @@ public class Player : MonoBehaviour
     {
         GameController.instance.players.Remove(this);
         Destroy(gameObject);
+    }
+
+    public void ResetBulletClass()
+    {
+        bulletClass = bullet.GetComponent<Bullet>();
     }
 }

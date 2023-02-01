@@ -2,9 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Tilemaps;
-using static LevelManager;
 
 public class LevelManager : MonoBehaviour
 {
@@ -43,8 +41,17 @@ public class LevelManager : MonoBehaviour
             enemiesDict.Add(enemy.name, enemy);
         }
 
-        int levelInSave = 1;
-        LoadLevel(levelInSave);
+        try
+        {
+            currentLevel = SaveManager.instance.GetSaveData().maxLevelNum;
+        }
+        catch 
+        {
+            Debug.Log("No loaded save data");  
+        }
+
+        GameController.instance.LoadInterLevelScreen();
+        LoadLevel(currentLevel);
     }
 
     private void Update()
@@ -88,10 +95,11 @@ public class LevelManager : MonoBehaviour
             levelData.tiles.Add(tileData);
         }
 
+        // Creates the enemy data for each of the spawn positions and adds each to the level data
         foreach(Transform spawn in enemySpawns.transform)
         {
             EnemyData enemyData = new EnemyData();
-            enemyData.enemyName = spawn.tag;
+            enemyData.enemyName = spawn.name;
             enemyData.enemyPosition = spawn.position;
 
             levelData.enemies.Add(enemyData);
@@ -104,8 +112,8 @@ public class LevelManager : MonoBehaviour
 
         // Writes the level data to a json file
         string json = JsonUtility.ToJson(levelData, true);
-        string level = "level";
-        File.WriteAllText(Application.dataPath + "/" + level + ".json", json);
+        string level = "level" + (GameController.instance.totalNumLevels + 1);
+        File.WriteAllText(Application.dataPath + "/Levels/" + level + ".json", json);
     }
 
     public void LoadLevel(int levelNumber)
@@ -114,13 +122,14 @@ public class LevelManager : MonoBehaviour
 
         Pathfinding.Initialize();
 
-        if (levelNumber > GameController.totalNumLevels)
+        if (levelNumber > GameController.instance.totalNumLevels)
         {
             Debug.Log("Probably game win");
             return;
         }
 
         currentLevel = levelNumber;
+
         ClearLevel();
 
         // Reads the level data from the json file
@@ -147,7 +156,7 @@ public class LevelManager : MonoBehaviour
 
         GameController.instance.enemiesRemaining = 0;
 
-        Instantiate(player, levelData.player.playerSpawn, Quaternion.identity);
+        GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
 
         foreach (EnemyData enemy in levelData.enemies)
         {
@@ -171,7 +180,7 @@ public class LevelManager : MonoBehaviour
         GameObject[] enemyObjects = GameObject.FindGameObjectsWithTag("Enemy");
         GameObject[] bulletObjects = GameObject.FindGameObjectsWithTag("Bullet");
         GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
-        // Add bit for particle systems
+        GameObject[] particleObjects = GameObject.FindGameObjectsWithTag("Particle");
 
         foreach (GameObject playerObject in playerObjects)
         {
@@ -189,6 +198,11 @@ public class LevelManager : MonoBehaviour
         foreach (GameObject bulletObject in bulletObjects)
         {
             Destroy(bulletObject);
+        }
+
+        foreach (GameObject particleObject in particleObjects)
+        {
+            Destroy(particleObject);
         }
     }
 

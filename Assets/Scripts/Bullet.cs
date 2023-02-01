@@ -3,15 +3,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Bullet : MonoBehaviour
+public class Bullet : MonoBehaviour
 {
     public ParticleSystem trailParticles;
     public Rigidbody2D rb;
     public LayerMask layerMask;
 
-    protected int maxBounces;
-    protected float bulletLifeTime;
-    protected float bulletSpeed;
+    //[NonSerialized]
+    /*
+    public abstract int MaxBounces { get; }
+    public abstract float BulletLifeTime { get; }
+    public abstract float BulletSpeed { get; }
+    */
+
+    [SerializeField]
+    private int maxBounces;
+    [SerializeField]
+    private float bulletLifeTime;
+    [SerializeField]
+    private float bulletSpeed;
+    [SerializeField]
+    private float reloadSpeed;
+    [SerializeField]
+    private int ammoCapacity;
+    [SerializeField]
+    private int bulletIndex;
 
     private Transform bulletOrigin;
 
@@ -22,6 +38,8 @@ public abstract class Bullet : MonoBehaviour
     public int MaxBounces => maxBounces;
     public float BulletLifeTime => bulletLifeTime;
     public float BulletSpeed => bulletSpeed;
+    public int AmmoCapacity => ammoCapacity;
+    public float ReloadSpeed => reloadSpeed;
 
     private void Start()
     {
@@ -41,7 +59,7 @@ public abstract class Bullet : MonoBehaviour
 
     private IEnumerator DestroyBulletAfterLifetime()
     {
-        yield return new WaitForSeconds(bulletLifeTime);
+        yield return new WaitForSeconds(BulletLifeTime);
 
         DestroyBullet();
     }
@@ -76,7 +94,7 @@ public abstract class Bullet : MonoBehaviour
         //Debug.DrawRay(ray.origin, ray.direction, Color.green, bulletLifeTime);
 
         // Loops for max number of bounces + 1 extra for the final destination
-        for (int i = 0; i < maxBounces + 1; i++)
+        for (int i = 0; i < MaxBounces + 1; i++)
         {
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, 100f, layerMask);
 
@@ -98,10 +116,10 @@ public abstract class Bullet : MonoBehaviour
 
     private void MoveBullet()
     {
-        if (currentBounce < maxBounces + 1)
+        if (currentBounce < MaxBounces + 1)
         {
             // Moves the bullet towards the next bounce position
-            rb.position = Vector2.MoveTowards(rb.position, bounces[currentBounce], bulletSpeed * Time.deltaTime);
+            rb.position = Vector2.MoveTowards(rb.position, bounces[currentBounce], BulletSpeed * Time.deltaTime);
 
             // Changes the bounce position to go to once reached the old bounce position
             if (rb.position == bounces[currentBounce])
@@ -111,7 +129,7 @@ public abstract class Bullet : MonoBehaviour
         }
 
         // Destoys bullet once it reaches the final position in the list
-        if (currentBounce >= maxBounces + 1)
+        if (currentBounce >= MaxBounces + 1)
         {
             DestroyBullet();
         }
@@ -126,5 +144,10 @@ public abstract class Bullet : MonoBehaviour
         // Allows particles to linger for a bit after the bullet has been destroyed
         transform.DetachChildren();
         Destroy(gameObject);
+    }
+
+    public int GetBulletIndex()
+    {
+        return bulletIndex;
     }
 }

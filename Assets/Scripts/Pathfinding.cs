@@ -15,6 +15,11 @@ public static class Pathfinding
 
     //public Grid grid;
 
+    private const int maxX = 12;
+    private const int minX = -12;
+    private const int maxY = 8;
+    private const int minY = -7;
+
     public static Dictionary<Vector2Int, Node> nodes;
 
     public static void Initialize()
@@ -22,9 +27,9 @@ public static class Pathfinding
         nodes = new Dictionary<Vector2Int, Node>();
 
         // Need to change to be dynamic rather than hard coded
-        for (int x = -12; x < 12; x++)
+        for (int x = minX; x < maxX; x++)
         {
-            for (int y = -7; y < 7; y++)
+            for (int y = minY; y < maxY; y++)
             {
                 Node node = new Node(x, y);
                 nodes.Add(new Vector2Int(x, y), node);
@@ -141,46 +146,46 @@ public static class Pathfinding
     {
         List<Node> neighbours = new List<Node>();
 
-        if (currentNode.y - 1 >= -7)
+        if (currentNode.y - 1 >= minY)
         {
             neighbours.Add(nodes[new Vector2Int(currentNode.x, currentNode.y - 1)]);
         }
 
-        if (currentNode.y + 1 < 7)
+        if (currentNode.y + 1 < maxY)
         {
             neighbours.Add(nodes[new Vector2Int(currentNode.x, currentNode.y + 1)]);
         }
 
-        if (currentNode.x - 1 >= -12)
+        if (currentNode.x - 1 >= minX)
         {
             neighbours.Add(nodes[new Vector2Int(currentNode.x - 1, currentNode.y)]);
 
             if (nodes[new Vector2Int(currentNode.x - 1, currentNode.y)].IsWalkable())
             {
-                if (currentNode.y - 1 >= -7 && nodes[new Vector2Int(currentNode.x, currentNode.y - 1)].IsWalkable())
+                if (currentNode.y - 1 >= minY && nodes[new Vector2Int(currentNode.x, currentNode.y - 1)].IsWalkable())
                 {
                     neighbours.Add(nodes[new Vector2Int(currentNode.x - 1, currentNode.y - 1)]);
                 }
 
-                if (currentNode.y + 1 < 7 && nodes[new Vector2Int(currentNode.x, currentNode.y + 1)].IsWalkable())
+                if (currentNode.y + 1 < maxY && nodes[new Vector2Int(currentNode.x, currentNode.y + 1)].IsWalkable())
                 {
                     neighbours.Add(nodes[new Vector2Int(currentNode.x - 1, currentNode.y + 1)]);
                 }
             }
         }
 
-        if (currentNode.x + 1 < 12)
+        if (currentNode.x + 1 < maxX)
         {
             neighbours.Add(nodes[new Vector2Int(currentNode.x + 1, currentNode.y)]);
 
             if (nodes[new Vector2Int(currentNode.x + 1, currentNode.y)].IsWalkable())
             {
-                if (currentNode.y - 1 >= -7 && nodes[new Vector2Int(currentNode.x, currentNode.y - 1)].IsWalkable())
+                if (currentNode.y - 1 >= minY && nodes[new Vector2Int(currentNode.x, currentNode.y - 1)].IsWalkable())
                 {
                     neighbours.Add(nodes[new Vector2Int(currentNode.x + 1, currentNode.y - 1)]);
                 }
 
-                if (currentNode.y + 1 < 7 && nodes[new Vector2Int(currentNode.x, currentNode.y + 1)].IsWalkable())
+                if (currentNode.y + 1 < maxY && nodes[new Vector2Int(currentNode.x, currentNode.y + 1)].IsWalkable())
                 {
                     neighbours.Add(nodes[new Vector2Int(currentNode.x + 1, currentNode.y + 1)]);
                 }

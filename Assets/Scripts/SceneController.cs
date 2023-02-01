@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class SceneController : MonoBehaviour
 {
-    private static SceneController instance;
+    public static SceneController instance;
 
     private void Awake()
     {

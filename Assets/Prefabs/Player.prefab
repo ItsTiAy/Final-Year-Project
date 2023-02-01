@@ -4967,8 +4967,7 @@ MonoBehaviour:
   rb: {fileID: 6901184489594337796}
   turret: {fileID: 6901184490230640616}
   bulletSpawn: {fileID: 6901184489179403928}
-  cam: {fileID: 0}
-  bullet: {fileID: 1362846775, guid: c86b88b3123a04b47882c373aa0fa9a2, type: 3}
+  bullet: {fileID: 1362846775, guid: 7f752dd1c8ec56347aa9d68ff0b84552, type: 3}
   layerMask:
     serializedVersion: 2
     m_Bits: 64
