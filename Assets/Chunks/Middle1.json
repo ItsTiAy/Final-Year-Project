@@ -1,0 +1,19 @@
+{
+    "tiles": [
+        {
+            "tileName": "Wall Tiles",
+            "tilePositionsX": [],
+            "tilePositionsY": []
+        },
+        {
+            "tileName": "Hole Tiles",
+            "tilePositionsX": [],
+            "tilePositionsY": []
+        },
+        {
+            "tileName": "Breakable Wall Tiles",
+            "tilePositionsX": [],
+            "tilePositionsY": []
+        }
+    ]
+}

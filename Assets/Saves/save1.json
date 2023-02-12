@@ -1,4 +1,6 @@
 {
-    "maxLevelNum": 10,
-    "primaryWeaponIndex": 0
+    "maxLevelNum": 11,
+    "primaryWeaponIndex": 0,
+    "secondaryWeaponIndex": 0,
+    "endlessUnlocked": true
 }

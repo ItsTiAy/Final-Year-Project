@@ -135,7 +135,7 @@ public class Bullet : MonoBehaviour
         }
     }
 
-    private void DestroyBullet()
+    public void DestroyBullet()
     {
         // Stops particle system from producing more particles
         trailParticles.Stop();

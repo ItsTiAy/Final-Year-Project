@@ -34,7 +34,7 @@ public class Enemy : MonoBehaviour
     private Quaternion newRotation;
 
     private bool reloading = false;
-    private bool waiting = false;
+    //private bool waiting = false;
     //private bool pausing = false;
 
     private int currentNode = 0;
@@ -148,7 +148,7 @@ public class Enemy : MonoBehaviour
     private void FollowPath()
     {
         // Moves towards the position chosen
-        rb.position = Vector2.MoveTowards(rb.position, new Vector2(path[currentNode].x + 0.5f, path[currentNode].y + 0.5f), moveSpeed * Time.deltaTime);
+        rb.MovePosition(Vector2.MoveTowards(rb.position, new Vector2(path[currentNode].x + 0.5f, path[currentNode].y + 0.5f), moveSpeed * Time.deltaTime));
     }
 
     public void Thinking()
@@ -256,6 +256,7 @@ public class Enemy : MonoBehaviour
         //turret.rotation = Quaternion.RotateTowards(turret.rotation, angle, rotationSpeed);
     }
 
+    /*
     private IEnumerator MoveTurret()
     {
         if (turret.rotation == (newRotation))
@@ -273,6 +274,7 @@ public class Enemy : MonoBehaviour
             turret.rotation = Quaternion.RotateTowards(turret.rotation, newRotation, rotationSpeed);
         }
     }
+    */
 
     private IEnumerator Reload(float waitTime)
     {
@@ -321,13 +323,26 @@ public class Enemy : MonoBehaviour
         {
             Destroy(gameObject);
 
-            GameController.instance.enemiesRemaining--;
+            GameController.instance.enemies.Remove(gameObject.GetComponent<Enemy>());
 
-            if (GameController.instance.enemiesRemaining <= 0)
+            if (GameController.instance.enemies.Count <= 0)
             {
                 // End the current level and move on to the next
                 GameController.instance.EndLevel();
             }
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            currentNode = 0;
+            do
+            {
+                GeneratePath(ChooseNewPosition());
+            }
+            while (path == null);
         }
     }
 }

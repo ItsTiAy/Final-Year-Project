@@ -20,6 +20,7 @@ public class LevelManager : MonoBehaviour
     public int currentLevel = 1;
 
     private Dictionary<string, GameObject> enemiesDict = new Dictionary<string, GameObject>();
+    private LevelData levelData;
 
     private void Awake()
     {
@@ -50,16 +51,22 @@ public class LevelManager : MonoBehaviour
             Debug.Log("No loaded save data");  
         }
 
-        GameController.instance.LoadInterLevelScreen();
-        LoadLevel(currentLevel);
+        //StartCoroutine(GameController.instance.TransitionToNextLevel());
+        //LoadLevel(currentLevel);
+        //LoadLevel(1);
+        //GenerateLevel();
     }
 
     private void Update()
     {
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.S)) SaveLevel();
-        if (Input.GetKeyDown(KeyCode.Alpha1)) LoadLevel(1);
-        if (Input.GetKeyDown(KeyCode.Alpha2)) LoadLevel(2);
-        if (Input.GetKeyDown(KeyCode.Alpha3)) LoadLevel(3);
+        //if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.L)) SaveChunk();
+        if (Input.GetKeyDown(KeyCode.Alpha2)) SaveChunk("LCorner");
+        if (Input.GetKeyDown(KeyCode.Alpha4)) SaveChunk("RCorner");
+        if (Input.GetKeyDown(KeyCode.Alpha3)) SaveChunk("TMiddle");
+        if (Input.GetKeyDown(KeyCode.Alpha1)) SaveChunk("LMiddle");
+        if (Input.GetKeyDown(KeyCode.Alpha5)) SaveChunk("RMiddle");
+        if (Input.GetKeyDown(KeyCode.Alpha6)) SaveChunk("Middle");
     }
 
     public void SaveLevel()
@@ -116,6 +123,48 @@ public class LevelManager : MonoBehaviour
         File.WriteAllText(Application.dataPath + "/Levels/" + level + ".json", json);
     }
 
+    public void SaveChunk(string chunkType)
+    {
+        Debug.Log("Save Chunk");
+
+        DirectoryInfo info = new DirectoryInfo(Application.dataPath + "/Chunks");
+        int len = info.GetFiles(chunkType + "*.json").Length;
+
+        ChunkData levelData = new ChunkData();
+
+        // Loops for each type of tile in the chunk
+        for (int i = 0; i < tiles.Count; i++)
+        {
+            TileData tileData = new TileData();
+            tileData.tileName = tiles[i].name;
+
+            // Gets the bounds of the tilemap to loop through
+            BoundsInt bounds = tilemaps[i].cellBounds;
+
+            for (int x = bounds.xMin; x < bounds.xMax; x++)
+            {
+                for (int y = bounds.yMin; y < bounds.yMax; y++)
+                {
+                    TileBase currentTile = tilemaps[i].GetTile(new Vector3Int(x, y, 0));
+
+                    // If the current tile is not null, save the x and y positions
+                    if (currentTile != null)
+                    {
+                        tileData.tilePositionsX.Add(x);
+                        tileData.tilePositionsY.Add(y);
+                    }
+                }
+            }
+
+            levelData.tiles.Add(tileData);
+        }
+
+        // Writes the chunk data to a json file
+        string json = JsonUtility.ToJson(levelData, true);
+        string chunk = chunkType + (len + 1);
+        File.WriteAllText(Application.dataPath + "/Chunks/" + chunk + ".json", json);
+    }
+
     public void LoadLevel(int levelNumber)
     {
         Debug.Log("Load Level");
@@ -134,7 +183,7 @@ public class LevelManager : MonoBehaviour
 
         // Reads the level data from the json file
         string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
-        LevelData levelData = JsonUtility.FromJson<LevelData>(json);
+        levelData = JsonUtility.FromJson<LevelData>(json);
 
         // Loops for each type of tile in the level
         for (int i = 0; i < levelData.tiles.Count; i++)
@@ -154,14 +203,15 @@ public class LevelManager : MonoBehaviour
             }
         }
 
-        GameController.instance.enemiesRemaining = 0;
+        GameController.instance.enemies.Clear();
+        GameController.instance.players.Clear();
 
         GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
 
         foreach (EnemyData enemy in levelData.enemies)
         {
-            Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity);
-            GameController.instance.enemiesRemaining++;
+            GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
+            //GameController.instance.enemiesRemaining++;
         }
     }
 
@@ -181,6 +231,7 @@ public class LevelManager : MonoBehaviour
         GameObject[] bulletObjects = GameObject.FindGameObjectsWithTag("Bullet");
         GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
         GameObject[] particleObjects = GameObject.FindGameObjectsWithTag("Particle");
+        GameObject[] mineObjects = GameObject.FindGameObjectsWithTag("Mine");
 
         foreach (GameObject playerObject in playerObjects)
         {
@@ -204,6 +255,98 @@ public class LevelManager : MonoBehaviour
         {
             Destroy(particleObject);
         }
+
+        foreach (GameObject mineObject in mineObjects)
+        {
+            Destroy(mineObject);
+        }
+    }
+
+    public void GenerateLevel()
+    {
+        ClearLevel();
+
+        Pathfinding.Initialize();
+
+        string[] chunkNames = { "LCorner", "TMiddle", "TMiddle", "RCorner", "LMiddle", "Middle", "Middle", "RMiddle" };
+        List<Vector2> spawnPositions = new List<Vector2>();
+
+        int startX;
+        int startY = 8;
+        int counter = 0;
+
+        foreach(Tilemap tilemap in tilemaps)
+        {
+            tilemap.ClearAllTiles();
+        }
+
+        for (int i = 0; i < chunkNames.Length / 4; i++)
+        {
+            startX = -12;
+            startY -= 4;
+
+            for (int l = 0; l < chunkNames.Length / 2; l++)
+            {
+                DirectoryInfo info = new DirectoryInfo(Application.dataPath + "/Chunks");
+                int len = info.GetFiles(chunkNames[counter] + "*.json").Length;
+
+                string json = File.ReadAllText(Application.dataPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json");
+                ChunkData chunkData = JsonUtility.FromJson<ChunkData>(json);
+
+                //(-12, 4)
+
+                // Loops for each type of tile in the chunk
+                for (int j = 0; j < chunkData.tiles.Count; j++)
+                {
+                    TileData tileData = chunkData.tiles[j];
+
+                    // Loops for each indiviual tile of the current tile type
+                    for (int k = 0; k < tileData.tilePositionsX.Count; k++)
+                    {
+                        // Sets the tile at the coordinates with the current tile type in the current tilemap
+                        tilemaps[j].SetTile(new Vector3Int(tileData.tilePositionsX[k] + startX, tileData.tilePositionsY[k] + startY), tiles[j]);
+                        Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[k] + startX, tileData.tilePositionsY[k] + startY)].SetIsWalkable(false);
+
+                        // Sets the mirrored and flipped tiles
+                        tilemaps[j].SetTile(new Vector3Int(-(tileData.tilePositionsX[k] + startX) - 1, -(tileData.tilePositionsY[k] + startY)), tiles[j]);
+                        Pathfinding.nodes[new Vector2Int(-(tileData.tilePositionsX[k] + startX) - 1, -(tileData.tilePositionsY[k] + startY))].SetIsWalkable(false);
+
+                    }
+                }
+
+                spawnPositions.Add(chunkData.spawnPosition + new Vector2(startX, startY));
+                spawnPositions.Add(new Vector2(-(chunkData.spawnPosition.x + startX) - 1, -(chunkData.spawnPosition.y + startY)));
+
+                startX += 6;
+                counter++;
+            }
+        }
+
+        GameController.instance.enemies.Clear();
+        GameController.instance.players.Clear();
+
+        int randNum = Random.Range(1, 6);
+
+        for (int i = 0; i < randNum; i++)
+        {
+            int spawnNum = Random.Range(0, spawnPositions.Count);
+            GameController.instance.enemies.Add(Instantiate(enemies[Random.Range(0, enemies.Count)], spawnPositions[spawnNum], Quaternion.identity).GetComponent<Enemy>());
+            spawnPositions.Remove(spawnPositions[spawnNum]);
+        }
+
+        GameController.instance.players.Add(Instantiate(player, spawnPositions[Random.Range(0, spawnPositions.Count)], Quaternion.identity).GetComponent<Player>());
+    }
+
+    public LevelData GetLevelData()
+    {
+        return levelData;
+    }
+
+    [System.Serializable]
+    public class ChunkData
+    {
+        public List<TileData> tiles = new List<TileData>();
+        public Vector2 spawnPosition = new Vector2(1.5f, 1.5f);
     }
 
     [System.Serializable]

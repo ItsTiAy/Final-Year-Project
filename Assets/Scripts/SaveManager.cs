@@ -32,7 +32,14 @@ public class SaveManager : MonoBehaviour
                 string json = File.ReadAllText(Application.dataPath + "/Saves/save" + (i + 1) + ".json");
                 SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-                saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
+                if (data.endlessUnlocked)
+                {
+                    saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nEndless";
+                }
+                else
+                {
+                    saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
+                }
             }
         }
     }
@@ -65,6 +72,22 @@ public class SaveManager : MonoBehaviour
 
         Debug.Log("Save");
     }
+
+    public void DeleteSave(int saveNumber)
+    {
+        string filepath = Application.dataPath + "/Saves/save" + saveNumber + ".json";
+
+        if (File.Exists(filepath))
+        {
+            File.Delete(filepath);
+
+            saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<TMP_Text>().text = "Empty";
+        }
+        else
+        {
+            Debug.Log("File does not exist");
+        }
+    }
     
     public SaveData GetSaveData()
     {
@@ -75,6 +98,7 @@ public class SaveManager : MonoBehaviour
     {
         saveData.maxLevelNum = LevelManager.instance.currentLevel + 1;
         saveData.primaryWeaponIndex = GameController.instance.players[0].bullet.GetComponent<Bullet>().GetBulletIndex();
+        saveData.secondaryWeaponIndex = GameController.instance.players[0].secondaryItem.GetIndex();
 
         string json = JsonUtility.ToJson(saveData, true);
         string save = "save" + slotNumber;
@@ -87,5 +111,7 @@ public class SaveManager : MonoBehaviour
     {
         public int maxLevelNum;
         public int primaryWeaponIndex;
+        public int secondaryWeaponIndex;
+        public bool endlessUnlocked = false;
     }
 }

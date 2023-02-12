@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     public Transform bulletSpawn;
     public Rigidbody2D bullet;
     public LayerMask layerMask;
+    public SecondaryItem secondaryItem;
 
     private Vector2 movement;
     private Vector2 mousePos;
@@ -21,12 +22,14 @@ public class Player : MonoBehaviour
     private Camera cam;
 
     private bool reloading = false;
+    private bool secondaryCooldown = false;
     private Quaternion newDirection;
     private Quaternion prevTargetRotation;
 
     private void Start()
     {
         bulletClass = GameController.instance.bulletTypes[SaveManager.instance.GetSaveData().primaryWeaponIndex];
+        secondaryItem = GameController.instance.secondaryItems[SaveManager.instance.GetSaveData().secondaryWeaponIndex];
         ammo = bulletClass.AmmoCapacity;
 
         GameController.instance.UpdateAmmoUI(ammo);
@@ -54,6 +57,11 @@ public class Player : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && !reloading)
             {
                 Fire();
+            }
+
+            if(Input.GetKeyDown(KeyCode.Space) && !secondaryCooldown)
+            {
+                SecondaryItem();
             }
         }
     }
@@ -134,6 +142,15 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void SecondaryItem()
+    {
+        if (secondaryItem != null)
+        {
+            Instantiate(secondaryItem, transform.position, Quaternion.identity);
+            StartCoroutine(Cooldown());
+        }
+    }
+
     private IEnumerator Reload()
     {
         reloading = true;
@@ -147,6 +164,15 @@ public class Player : MonoBehaviour
         reloading = false;
     }
 
+    private IEnumerator Cooldown()
+    {
+        secondaryCooldown = true;
+
+        yield return new WaitForSeconds(5);
+
+        secondaryCooldown = false;
+    }
+
     public void DecreaseHealth()
     {
         health--;
@@ -154,7 +180,7 @@ public class Player : MonoBehaviour
         if (health <= 0)
         {
             DestroyPlayer();
-            LevelManager.instance.ReloadCurrentLevel();
+            GameController.instance.RestartLevel();
         }
     }
 
@@ -167,5 +193,7 @@ public class Player : MonoBehaviour
     public void ResetBulletClass()
     {
         bulletClass = bullet.GetComponent<Bullet>();
+        ammo = bulletClass.AmmoCapacity;
+        GameController.instance.UpdateAmmoUI(ammo);
     }
 }

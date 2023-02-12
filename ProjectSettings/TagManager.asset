@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Red
   - Particle
+  - Mine
   layers:
   - Default
   - TransparentFX
