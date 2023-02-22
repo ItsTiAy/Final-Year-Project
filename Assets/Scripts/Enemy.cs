@@ -21,6 +21,8 @@ public class Enemy : MonoBehaviour
     private float fireChance = 1f;
     [SerializeField]
     private float turretRotateAngle = 3f;
+    [SerializeField]
+    private ParticleSystem explosion;
 
     public Rigidbody2D rb;
     public Transform turret;
@@ -321,12 +323,17 @@ public class Enemy : MonoBehaviour
 
         if (health <= 0)
         {
+           ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
+
             Destroy(gameObject);
 
             GameController.instance.enemies.Remove(gameObject.GetComponent<Enemy>());
 
             if (GameController.instance.enemies.Count <= 0)
             {
+                var main = exp.main;
+                main.useUnscaledTime = true;
+
                 // End the current level and move on to the next
                 GameController.instance.EndLevel();
             }

@@ -11,6 +11,8 @@ public class Mine : SecondaryItem
     private float duration;
     [SerializeField]
     private float radius;
+    [SerializeField]
+    private ParticleSystem explosion;
 
     private void Start()
     {
@@ -66,6 +68,8 @@ public class Mine : SecondaryItem
             player.DecreaseHealth();
         }
 
+        explosion.Play();
+        transform.DetachChildren();
         Destroy(gameObject);
     }
 

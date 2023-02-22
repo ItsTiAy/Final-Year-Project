@@ -1,11 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.Build;
-using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
@@ -15,7 +14,7 @@ public class GameController : MonoBehaviour
     public List<Enemy> enemies;
     //public Bullet[] primaryWeapons = new Bullet[2];
 
-    public Bullet[] bulletTypes = new Bullet[2];
+    public Bullet[] bulletTypes = new Bullet[3];
     public SecondaryItem[] secondaryItems = new SecondaryItem[1]; 
 
     //public int enemiesRemaining;
@@ -26,17 +25,26 @@ public class GameController : MonoBehaviour
     public GameObject endlessEndScreen;
     public Transform primaryWeaponContainer;
     public Transform secondaryWeaponContainer;
+    public Text weaponDescription;
 
     public GameObject pauseMenu;
     public static bool isPaused = true;
 
-    public TMP_Text ammoUI;
+    public Transform ammoUI;
+    public Slider bulletReloadUI;
+    public Slider secondaryReloadUI;
 
-    public TMP_Text countdown;
+    public Text countdown;
 
     private int numPrimaryWeaponsUnlocked = 1;
     private int numSecondaryWeaponsUnlocked = 1;
     private bool endlessUnlocked;
+    private bool canPause = false;
+    private int newBulletIndex;
+    private int newSecondaryIndex;
+
+    private Coroutine bulletReload;
+    private Coroutine secondaryReload;
 
     public Animator interLevelScreenFade;
 
@@ -59,16 +67,16 @@ public class GameController : MonoBehaviour
 
         //int wombat = Resources.LoadAll("Levels").Length;
 
-        DirectoryInfo info = new DirectoryInfo(Application.dataPath + "/Levels");
-        int len = info.GetFiles("*.json").Length;
+        //DirectoryInfo info = new DirectoryInfo(Application.dataPath + "/Levels");
+        //int len = info.GetFiles("*.json").Length;
 
-        totalNumLevels = len;
+        totalNumLevels = 10;
     }
 
     private void Start()
     {
-        UpdateInterLevelScreenUI(true);
         endlessUnlocked = SaveManager.instance.GetSaveData().endlessUnlocked;
+        UpdateInterLevelScreenUI(true);
 
         if (endlessUnlocked)
         {
@@ -76,23 +84,27 @@ public class GameController : MonoBehaviour
         }
         else
         {
+            Debug.Log("Not endless");
             LevelManager.instance.LoadLevel(SaveManager.instance.GetSaveData().maxLevelNum);
         }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (canPause)
         {
-            if (isPaused)
+            if (Input.GetKeyDown(KeyCode.P))
             {
-                ResumeGame();
-                pauseMenu.SetActive(false);
-            }
-            else
-            {
-                pauseMenu.SetActive(true);
-                PauseGame();
+                if (isPaused)
+                {
+                    ResumeGame();
+                    pauseMenu.SetActive(false);
+                }
+                else
+                {
+                    pauseMenu.SetActive(true);
+                    PauseGame();
+                }
             }
         }
     }
@@ -101,11 +113,22 @@ public class GameController : MonoBehaviour
     {
         //interLevelScreen.SetActive(false);
 
+        ResetReloadUI();
+
+        players[0].bullet = bulletTypes[newBulletIndex].GetComponent<Rigidbody2D>();
+        players[0].ResetBulletClass();
+
+        players[0].secondaryItem = secondaryItems[newSecondaryIndex];
+
+        SaveManager.instance.GetSaveData().primaryWeaponIndex = newBulletIndex;
+        SaveManager.instance.GetSaveData().secondaryWeaponIndex = newSecondaryIndex;
+
         StartCoroutine(StartCountdown());
     }
 
     public void RestartLevel()
     {
+        canPause = false;
         if (endlessUnlocked)
         {
             EndEndless();
@@ -118,6 +141,7 @@ public class GameController : MonoBehaviour
 
     public void EndLevel()
     {
+        canPause = false;
         if (endlessUnlocked)
         {
             StartCoroutine(TransitionToNextEndlessLevel());
@@ -140,6 +164,7 @@ public class GameController : MonoBehaviour
 
     public void EndEndless()
     {
+        canPause = false;
         PauseGame();
         endlessEndScreen.SetActive(true);
     }
@@ -163,6 +188,7 @@ public class GameController : MonoBehaviour
 
     public IEnumerator TransitionToNextEndlessLevel()
     {
+        canPause = false;
         PauseGame();
 
         UpdateInterLevelScreenUI(false);
@@ -182,7 +208,7 @@ public class GameController : MonoBehaviour
 
         UpdateInterLevelScreenUI(false);
 
-        interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = "Level: " + (LevelManager.instance.currentLevel + 1);
+        interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "Level: " + (LevelManager.instance.currentLevel + 1);
 
         yield return new WaitForSecondsRealtime(1);
 
@@ -196,6 +222,7 @@ public class GameController : MonoBehaviour
 
     public IEnumerator ReloadCurrentLevel()
     {
+        canPause = false;
         PauseGame();
         UpdateInterLevelScreenUI(true);
 
@@ -208,25 +235,73 @@ public class GameController : MonoBehaviour
         LevelManager.instance.ReloadCurrentLevel();
     }
 
-    public void SwitchWeapon(Rigidbody2D newBullet)
+    public void SwitchWeapon(int index)
     {
-        players[0].bullet = newBullet;
-        players[0].ResetBulletClass();
+        newBulletIndex = index;
 
-        SaveManager.instance.GetSaveData().primaryWeaponIndex = newBullet.GetComponent<Bullet>().GetBulletIndex();
-    }
-
-    public void SwtichSecondary(SecondaryItem newSecondary)
-    {
-        players[0].secondaryItem = newSecondary;
+        //players[0].bullet = newBullet;
         //players[0].ResetBulletClass();
 
-        SaveManager.instance.GetSaveData().secondaryWeaponIndex = newSecondary.GetIndex();
+        //newBullet.GetComponent<Bullet>().GetBulletIndex();
+    }
+
+    public void SwtichSecondary(int index)
+    {
+        newSecondaryIndex = index;
+        //players[0].ResetBulletClass();
     }
 
     public void UpdateAmmoUI(int value) 
     {
-        ammoUI.text = value.ToString();
+        for (int i = 0; i < ammoUI.childCount; i++)
+        {
+            ammoUI.GetChild(i).gameObject.SetActive(false);
+        }
+
+        for (int i = 0; i < value; i++)
+        {
+            ammoUI.GetChild(i).gameObject.SetActive(true);
+        }
+    }
+
+    public void ResetReloadUI()
+    {
+        if (bulletReload != null)
+        {
+            StopCoroutine(bulletReload);
+        }
+
+        if(secondaryReload != null)
+        {
+            StopCoroutine(secondaryReload);
+        }
+
+        bulletReloadUI.value = 0;
+        secondaryReloadUI.value = 0;
+    }
+
+    public void AnimateBulletReload(float seconds)
+    {
+        bulletReload = StartCoroutine(AnimateSliderOverTime(seconds, bulletReloadUI));
+    }
+
+    public void AnimateSecondaryReload(float seconds)
+    {
+        secondaryReload = StartCoroutine(AnimateSliderOverTime(seconds, secondaryReloadUI));
+    }
+
+    private IEnumerator AnimateSliderOverTime(float seconds, Slider slider)
+    {
+        float animationTime = 0f;
+        while (animationTime < seconds)
+        {
+            animationTime += Time.deltaTime;
+            float lerpValue = animationTime / seconds;
+            slider.value = Mathf.Lerp(0, 1, lerpValue);
+            yield return null;
+        }
+
+        slider.value = 0;
     }
 
     public void UpdateInterLevelScreenUI(bool reload)
@@ -256,6 +331,7 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < numPrimaryWeaponsUnlocked; i++)
         {
             primaryWeaponContainer.GetChild(i).gameObject.SetActive(true);
+            //primaryWeaponContainer.GetChild(i).GetComponent<Button>().OnPointerEnter();
         }
 
         for (int i = 0; i < numSecondaryWeaponsUnlocked; i++)
@@ -263,7 +339,10 @@ public class GameController : MonoBehaviour
             secondaryWeaponContainer.GetChild(i).gameObject.SetActive(true);
         }
 
-        interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = "Level: " + LevelManager.instance.currentLevel;
+        primaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().primaryWeaponIndex).GetComponent<Toggle>().isOn = true;
+        secondaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().secondaryWeaponIndex).GetComponent<Toggle>().isOn = true;
+
+        interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "Level " + LevelManager.instance.currentLevel;
     }
 
     private IEnumerator StartCountdown()
@@ -287,5 +366,23 @@ public class GameController : MonoBehaviour
         yield return new WaitForSecondsRealtime(1);
         countdown.gameObject.SetActive(false);
         ResumeGame();
+        canPause = true;
+    }
+
+    public void ButtonHoverOn(string text)
+    {
+        weaponDescription.text = text;
+        weaponDescription.enabled = true;
+    }
+
+    public void ButtonHoverOff()
+    {
+        weaponDescription.enabled = false;
+    }
+
+    public void Exit()
+    {
+        //SaveManager.instance.SaveProgress();
+        SceneController.LoadScene(0);
     }
 }

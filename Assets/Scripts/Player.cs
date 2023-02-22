@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -11,6 +10,7 @@ public class Player : MonoBehaviour
     public Rigidbody2D bullet;
     public LayerMask layerMask;
     public SecondaryItem secondaryItem;
+    public ParticleSystem explosion;
 
     private Vector2 movement;
     private Vector2 mousePos;
@@ -23,8 +23,11 @@ public class Player : MonoBehaviour
 
     private bool reloading = false;
     private bool secondaryCooldown = false;
-    private Quaternion newDirection;
-    private Quaternion prevTargetRotation;
+
+    private KeyCode left = KeyCode.A;
+    private KeyCode right = KeyCode.D;
+    private KeyCode up = KeyCode.W;
+    private KeyCode down = KeyCode.S;
 
     private void Start()
     {
@@ -49,8 +52,10 @@ public class Player : MonoBehaviour
     {
         if (!GameController.isPaused)
         {
-            movement.x = Input.GetAxisRaw("Horizontal");
-            movement.y = Input.GetAxisRaw("Vertical");
+            movement.x = Convert.ToInt32(Input.GetKey(right)) - Convert.ToInt32(Input.GetKey(left));
+            movement.y = Convert.ToInt32(Input.GetKey(up)) - Convert.ToInt32(Input.GetKey(down));
+            //movement.x = Input.GetAxisRaw("Horizontal");
+            //movement.y = Input.GetAxisRaw("Vertical");
 
             mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
 
@@ -63,6 +68,14 @@ public class Player : MonoBehaviour
             {
                 SecondaryItem();
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            left = KeyCode.LeftArrow;
+            right = KeyCode.RightArrow;
+            up = KeyCode.UpArrow;
+            down = KeyCode.DownArrow;
         }
     }
 
@@ -155,6 +168,8 @@ public class Player : MonoBehaviour
     {
         reloading = true;
 
+        GameController.instance.AnimateBulletReload(bulletClass.ReloadSpeed);
+
         yield return new WaitForSeconds(bulletClass.ReloadSpeed);
 
         ammo = bulletClass.AmmoCapacity;
@@ -168,6 +183,8 @@ public class Player : MonoBehaviour
     {
         secondaryCooldown = true;
 
+        GameController.instance.AnimateSecondaryReload(5);
+
         yield return new WaitForSeconds(5);
 
         secondaryCooldown = false;
@@ -179,6 +196,10 @@ public class Player : MonoBehaviour
 
         if (health <= 0)
         {
+            ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
+            var main = exp.main;
+            main.useUnscaledTime = true;
+
             DestroyPlayer();
             GameController.instance.RestartLevel();
         }

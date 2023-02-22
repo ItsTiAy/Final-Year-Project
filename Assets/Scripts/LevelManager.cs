@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.Tilemaps;
 
 public class LevelManager : MonoBehaviour
@@ -162,56 +163,63 @@ public class LevelManager : MonoBehaviour
         // Writes the chunk data to a json file
         string json = JsonUtility.ToJson(levelData, true);
         string chunk = chunkType + (len + 1);
-        File.WriteAllText(Application.dataPath + "/Chunks/" + chunk + ".json", json);
+        File.WriteAllText(Application.streamingAssetsPath + "/Chunks/" + chunk + ".json", json);
     }
 
     public void LoadLevel(int levelNumber)
     {
         Debug.Log("Load Level");
+        StartCoroutine(LoadLevelCoroutine(levelNumber));
+    }
 
+    public IEnumerator LoadLevelCoroutine(int levelNumber)
+    {
         Pathfinding.Initialize();
-
-        if (levelNumber > GameController.instance.totalNumLevels)
-        {
-            Debug.Log("Probably game win");
-            return;
-        }
 
         currentLevel = levelNumber;
 
         ClearLevel();
 
         // Reads the level data from the json file
-        string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
-        levelData = JsonUtility.FromJson<LevelData>(json);
+        //string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
+        //levelData = JsonUtility.FromJson<LevelData>(json);
 
-        // Loops for each type of tile in the level
-        for (int i = 0; i < levelData.tiles.Count; i++)
+        string path = Application.streamingAssetsPath + "/Levels/level" + levelNumber + ".json";
+        UnityWebRequest uwr = UnityWebRequest.Get(path);
+        yield return uwr.SendWebRequest();
+
+        if (uwr.result == UnityWebRequest.Result.Success)
         {
-            // Clears the current tilemap
-            tilemaps[i].ClearAllTiles();
-            TileData tileData = levelData.tiles[i];
+            levelData = JsonUtility.FromJson<LevelData>(uwr.downloadHandler.text);
 
-            // Loops for each indiviual tile of the current tile type
-            for (int j = 0; j < tileData.tilePositionsX.Count; j++)
+            // Loops for each type of tile in the level
+            for (int i = 0; i < levelData.tiles.Count; i++)
             {
-                // Sets the tile at the coordinates with the current tile type in the current tilemap
-                tilemaps[i].SetTile(new Vector3Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j]), tiles[i]);
+                // Clears the current tilemap
+                tilemaps[i].ClearAllTiles();
+                TileData tileData = levelData.tiles[i];
 
-                Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].SetIsWalkable(false);
-                //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
+                // Loops for each indiviual tile of the current tile type
+                for (int j = 0; j < tileData.tilePositionsX.Count; j++)
+                {
+                    // Sets the tile at the coordinates with the current tile type in the current tilemap
+                    tilemaps[i].SetTile(new Vector3Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j]), tiles[i]);
+
+                    Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].SetIsWalkable(false);
+                    //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
+                }
             }
-        }
 
-        GameController.instance.enemies.Clear();
-        GameController.instance.players.Clear();
+            GameController.instance.enemies.Clear();
+            GameController.instance.players.Clear();
 
-        GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
+            GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
 
-        foreach (EnemyData enemy in levelData.enemies)
-        {
-            GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
-            //GameController.instance.enemiesRemaining++;
+            foreach (EnemyData enemy in levelData.enemies)
+            {
+                GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
+                //GameController.instance.enemiesRemaining++;
+            }
         }
     }
 
@@ -264,7 +272,14 @@ public class LevelManager : MonoBehaviour
 
     public void GenerateLevel()
     {
+        StartCoroutine(GenerateLevelCoroutine());
+    }
+
+    private IEnumerator GenerateLevelCoroutine()
+    {
         ClearLevel();
+
+        levelData = new LevelData();
 
         Pathfinding.Initialize();
 
@@ -287,38 +302,46 @@ public class LevelManager : MonoBehaviour
 
             for (int l = 0; l < chunkNames.Length / 2; l++)
             {
-                DirectoryInfo info = new DirectoryInfo(Application.dataPath + "/Chunks");
+                DirectoryInfo info = new DirectoryInfo(Application.streamingAssetsPath + "/Chunks");
                 int len = info.GetFiles(chunkNames[counter] + "*.json").Length;
 
-                string json = File.ReadAllText(Application.dataPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json");
-                ChunkData chunkData = JsonUtility.FromJson<ChunkData>(json);
+                //string json = File.ReadAllText(Application.streamingAssetsPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json");
+                //ChunkData chunkData = JsonUtility.FromJson<ChunkData>(json);
 
-                //(-12, 4)
+                string path = Application.streamingAssetsPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json";
+                UnityWebRequest uwr = UnityWebRequest.Get(path);
+                yield return uwr.SendWebRequest();
 
-                // Loops for each type of tile in the chunk
-                for (int j = 0; j < chunkData.tiles.Count; j++)
+                if (uwr.result == UnityWebRequest.Result.Success)
                 {
-                    TileData tileData = chunkData.tiles[j];
+                    ChunkData chunkData = JsonUtility.FromJson<ChunkData>(uwr.downloadHandler.text);
 
-                    // Loops for each indiviual tile of the current tile type
-                    for (int k = 0; k < tileData.tilePositionsX.Count; k++)
+                    // Loops for each type of tile in the chunk
+                    for (int j = 0; j < chunkData.tiles.Count; j++)
                     {
-                        // Sets the tile at the coordinates with the current tile type in the current tilemap
-                        tilemaps[j].SetTile(new Vector3Int(tileData.tilePositionsX[k] + startX, tileData.tilePositionsY[k] + startY), tiles[j]);
-                        Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[k] + startX, tileData.tilePositionsY[k] + startY)].SetIsWalkable(false);
+                        TileData tileData = chunkData.tiles[j];
+                        levelData.tiles.Add(tileData);
 
-                        // Sets the mirrored and flipped tiles
-                        tilemaps[j].SetTile(new Vector3Int(-(tileData.tilePositionsX[k] + startX) - 1, -(tileData.tilePositionsY[k] + startY)), tiles[j]);
-                        Pathfinding.nodes[new Vector2Int(-(tileData.tilePositionsX[k] + startX) - 1, -(tileData.tilePositionsY[k] + startY))].SetIsWalkable(false);
+                        // Loops for each indiviual tile of the current tile type
+                        for (int k = 0; k < tileData.tilePositionsX.Count; k++)
+                        {
+                            // Sets the tile at the coordinates with the current tile type in the current tilemap
+                            tilemaps[j].SetTile(new Vector3Int(tileData.tilePositionsX[k] + startX, tileData.tilePositionsY[k] + startY), tiles[j]);
+                            Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[k] + startX, tileData.tilePositionsY[k] + startY)].SetIsWalkable(false);
 
+                            // Sets the mirrored and flipped tiles
+                            tilemaps[j].SetTile(new Vector3Int(-(tileData.tilePositionsX[k] + startX) - 1, -(tileData.tilePositionsY[k] + startY)), tiles[j]);
+                            Pathfinding.nodes[new Vector2Int(-(tileData.tilePositionsX[k] + startX) - 1, -(tileData.tilePositionsY[k] + startY))].SetIsWalkable(false);
+
+                        }
                     }
+
+                    spawnPositions.Add(chunkData.spawnPosition + new Vector2(startX, startY));
+                    spawnPositions.Add(new Vector2(-(chunkData.spawnPosition.x + startX) - 1, -(chunkData.spawnPosition.y + startY)));
+
+                    startX += 6;
+                    counter++;
                 }
-
-                spawnPositions.Add(chunkData.spawnPosition + new Vector2(startX, startY));
-                spawnPositions.Add(new Vector2(-(chunkData.spawnPosition.x + startX) - 1, -(chunkData.spawnPosition.y + startY)));
-
-                startX += 6;
-                counter++;
             }
         }
 

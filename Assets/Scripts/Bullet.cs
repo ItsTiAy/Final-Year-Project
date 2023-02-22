@@ -66,11 +66,7 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Bullet"))
-        {
-            DestroyBullet();
-        }
-        else if (collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Enemy"))
         {
             // Decreases enemy health by 1 and then destroys the bullet
             collision.gameObject.GetComponent<Enemy>().DecreaseHealth();
@@ -83,6 +79,14 @@ public class Bullet : MonoBehaviour
             collision.gameObject.GetComponent<Player>().DecreaseHealth();
             DestroyBullet();
             Debug.Log("Hit self");
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Bullet"))
+        {
+            DestroyBullet();
         }
     }
 

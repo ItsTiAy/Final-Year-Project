@@ -4919,7 +4919,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 8c8a1f0e2763ad64ab1750e9479a4079, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -4972,6 +4972,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   secondaryItem: {fileID: 0}
+  explosion: {fileID: 293439237774227571, guid: 7ea6d035b9893d94c8aae1b0846fa6b4, type: 3}
 --- !u!58 &7198225838675608954
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -5060,7 +5061,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.32404834, g: 0.3160377, b: 1, a: 1}
   m_FlipX: 0
@@ -10019,7 +10020,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.3254902, g: 0.31764707, b: 0.9960785, a: 1}
   m_FlipX: 0

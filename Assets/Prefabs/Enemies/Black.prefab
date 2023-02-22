@@ -5056,6 +5056,7 @@ MonoBehaviour:
   reloadSpeed: 5
   fireChance: 1
   turretRotateAngle: 0
+  explosion: {fileID: 293439237774227571, guid: 7ea6d035b9893d94c8aae1b0846fa6b4, type: 3}
   rb: {fileID: 5658990514939293303}
   turret: {fileID: 6928562127642226516}
   bulletSpawn: {fileID: 3894160753897675274}

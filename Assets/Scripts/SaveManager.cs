@@ -1,9 +1,9 @@
+using System.Collections;
 using System.IO;
+using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using static SaveManager;
+using UnityEngine.Networking;
 
 public class SaveManager : MonoBehaviour
 {
@@ -12,6 +12,13 @@ public class SaveManager : MonoBehaviour
     public GameObject saveContainer;
     private SaveData saveData;
     private int slotNumber;
+
+    [DllImport("__Internal")]
+    private static extern void SetCookie(string cname, string cvalue);
+    [DllImport("__Internal")]
+    private static extern string GetCookie(string cname);
+    [DllImport("__Internal")]
+    private static extern string DeleteCookie(string cname);
 
     private void Awake()
     {
@@ -25,39 +32,59 @@ public class SaveManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        for (int i = 0; i < saveContainer.transform.childCount; i++)
-        {
-            if (File.Exists(Application.dataPath + "/Saves/save" + (i + 1) + ".json"))
-            {
-                string json = File.ReadAllText(Application.dataPath + "/Saves/save" + (i + 1) + ".json");
-                SaveData data = JsonUtility.FromJson<SaveData>(json);
-
-                if (data.endlessUnlocked)
-                {
-                    saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nEndless";
-                }
-                else
-                {
-                    saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
-                }
-            }
-        }
+        InitalizeSaveUI();
     }
 
+    // NEED TO FIX SAVING STUFF IN FUTURE (maybe)
     public void LoadSave(int saveNumber)
     {
         slotNumber = saveNumber;
+        string json;
 
+        try
+        {
+            json = GetCookie("save" + saveNumber);
+
+            Debug.Log(json);
+
+            if (json == "")
+            {
+                Debug.Log("New save");
+                CreateNewSave(saveNumber);
+                json = GetCookie("save" + saveNumber.ToString());
+            }
+        }
+        catch 
+        {
+            if (!File.Exists(Application.streamingAssetsPath + "/Saves/save" + saveNumber + ".json"))
+            {
+                CreateNewSave(saveNumber);
+            }
+
+            json = File.ReadAllText(Application.streamingAssetsPath + "/Saves/save" + saveNumber + ".json");
+        }
+
+        Debug.Log("Load save");
+        saveData = JsonUtility.FromJson<SaveData>(json);
+        SceneController.LoadScene(1);
+        
+        
+
+
+        /*
         if (!File.Exists(Application.dataPath + "/Saves/save" + saveNumber + ".json"))
         {
             CreateNewSave(saveNumber);
         }
+        */
 
-        string json = File.ReadAllText(Application.dataPath + "/Saves/save" + saveNumber + ".json");
+        //string json = File.ReadAllText(Application.dataPath + "/Saves/save" + saveNumber + ".json");
 
-        saveData = JsonUtility.FromJson<SaveData>(json);
+        //string path = Application.streamingAssetsPath + "/Saves/save" + saveNumber + ".json";
+        //UnityWebRequest uwr = UnityWebRequest.Get(path);
+        //uwr.SendWebRequest();
 
-        SceneController.LoadScene(1);
+        //StartCoroutine(LoadSaveCoroutine(path));
     }
 
     private void CreateNewSave(int saveNumber)
@@ -66,26 +93,52 @@ public class SaveManager : MonoBehaviour
         data.maxLevelNum = 1;
         data.primaryWeaponIndex = 0;
 
-        string json = JsonUtility.ToJson(data, true);
+        string json = JsonUtility.ToJson(data, false);
         string save = "save" + saveNumber;
-        File.WriteAllText(Application.dataPath + "/Saves/" + save + ".json", json);
+
+        try
+        {
+            SetCookie(save, json);
+        }
+        catch
+        {
+            File.WriteAllText(Application.streamingAssetsPath + "/Saves/" + save + ".json", json);
+        }
 
         Debug.Log("Save");
     }
 
     public void DeleteSave(int saveNumber)
     {
-        string filepath = Application.dataPath + "/Saves/save" + saveNumber + ".json";
-
-        if (File.Exists(filepath))
+        try
         {
-            File.Delete(filepath);
+            string json = GetCookie("save" + saveNumber);
 
-            saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<TMP_Text>().text = "Empty";
+            if (json != "")
+            {
+                DeleteCookie("save" + saveNumber);
+
+                saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<TMP_Text>().text = "Empty";
+            }
+            else
+            {
+                Debug.Log("Cookie does not exist");
+            }
         }
-        else
+        catch
         {
-            Debug.Log("File does not exist");
+            string filepath = Application.streamingAssetsPath + "/Saves/save" + saveNumber + ".json";
+
+            if (File.Exists(filepath))
+            {
+                File.Delete(filepath);
+
+                saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<TMP_Text>().text = "Empty";
+            }
+            else
+            {
+                Debug.Log("File does not exist");
+            }
         }
     }
     
@@ -94,15 +147,79 @@ public class SaveManager : MonoBehaviour
         return saveData;
     }
 
+    private IEnumerator LoadSaveCoroutine(string path)
+    {
+        UnityWebRequest uwr = UnityWebRequest.Get(path);
+        yield return uwr.SendWebRequest();
+        saveData = JsonUtility.FromJson<SaveData>(uwr.downloadHandler.text);
+        SceneController.LoadScene(1);
+    }
+
+    private void InitalizeSaveUI()
+    {
+        try
+        {
+            for (int i = 0; i < saveContainer.transform.childCount; i++)
+            {
+                string json = GetCookie("save" + (i + 1));
+
+                if (json != "")
+                {
+                    SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+                    if (data.endlessUnlocked)
+                    {
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nEndless";
+                    }
+                    else
+                    {
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            for (int i = 0; i < saveContainer.transform.childCount; i++)
+            {
+                string path = Application.streamingAssetsPath + "/Saves/save" + (i + 1) + ".json";
+
+                if (File.Exists(path))
+                {
+                    string json = File.ReadAllText(path);
+
+                    SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+                    if (data.endlessUnlocked)
+                    {
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nEndless";
+                    }
+                    else
+                    {
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
+                    }
+                }
+            }
+        }
+    }
+
     public void SaveProgress()
     {
         saveData.maxLevelNum = LevelManager.instance.currentLevel + 1;
         saveData.primaryWeaponIndex = GameController.instance.players[0].bullet.GetComponent<Bullet>().GetBulletIndex();
         saveData.secondaryWeaponIndex = GameController.instance.players[0].secondaryItem.GetIndex();
 
-        string json = JsonUtility.ToJson(saveData, true);
+        string json = JsonUtility.ToJson(saveData);
         string save = "save" + slotNumber;
-        File.WriteAllText(Application.dataPath + "/Saves/" + save + ".json", json);
+
+        try
+        {
+            SetCookie(save, json);
+        }
+        catch
+        {
+            File.WriteAllText(Application.streamingAssetsPath + "/Saves/" + save + ".json", json);
+        }
     }
     
 
