@@ -15,7 +15,10 @@ public class GameController : MonoBehaviour
     //public Bullet[] primaryWeapons = new Bullet[2];
 
     public Bullet[] bulletTypes = new Bullet[3];
-    public SecondaryItem[] secondaryItems = new SecondaryItem[1]; 
+    public SecondaryItem[] secondaryItems = new SecondaryItem[1];
+
+    public Transform bulletContainer;
+    public Transform mineContainer;
 
     //public int enemiesRemaining;
     public int totalNumLevels;
@@ -76,6 +79,8 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         endlessUnlocked = SaveManager.instance.GetSaveData().endlessUnlocked;
+        newBulletIndex = SaveManager.instance.GetSaveData().primaryWeaponIndex;
+        Debug.Log(newBulletIndex);
         UpdateInterLevelScreenUI(true);
 
         if (endlessUnlocked)
@@ -115,6 +120,8 @@ public class GameController : MonoBehaviour
 
         ResetReloadUI();
 
+        Debug.Log(newBulletIndex);
+
         players[0].bullet = bulletTypes[newBulletIndex].GetComponent<Rigidbody2D>();
         players[0].ResetBulletClass();
 
@@ -142,6 +149,8 @@ public class GameController : MonoBehaviour
     public void EndLevel()
     {
         canPause = false;
+        PauseGame();
+
         if (endlessUnlocked)
         {
             StartCoroutine(TransitionToNextEndlessLevel());
@@ -150,7 +159,6 @@ public class GameController : MonoBehaviour
         {
             if (LevelManager.instance.currentLevel >= totalNumLevels)
             {
-                PauseGame();
                 SaveManager.instance.GetSaveData().endlessUnlocked = true;
                 SaveManager.instance.SaveProgress();
                 endScreen.SetActive(true);
@@ -171,6 +179,8 @@ public class GameController : MonoBehaviour
 
     public void RestartEndless()
     {
+        canPause = false;
+        PauseGame();
         StartCoroutine(TransitionToNextEndlessLevel());
     }
 
@@ -188,8 +198,7 @@ public class GameController : MonoBehaviour
 
     public IEnumerator TransitionToNextEndlessLevel()
     {
-        canPause = false;
-        PauseGame();
+        //canPause = false;
 
         UpdateInterLevelScreenUI(false);
 
@@ -243,6 +252,8 @@ public class GameController : MonoBehaviour
         //players[0].ResetBulletClass();
 
         //newBullet.GetComponent<Bullet>().GetBulletIndex();
+        Debug.Log(index);
+        Debug.Log("Switch Primary");
     }
 
     public void SwtichSecondary(int index)
@@ -308,9 +319,18 @@ public class GameController : MonoBehaviour
     {
         int extra = 0;
 
-        if(!reload)
+        if (!reload)
         {
             extra = 1;
+        }
+
+        if (LevelManager.instance.currentLevel + extra == 1)
+        {
+            interLevelScreen.transform.GetChild(0).GetChild(2).gameObject.SetActive(true);
+        }
+        else
+        {
+            interLevelScreen.transform.GetChild(0).GetChild(2).gameObject.SetActive(false);
         }
 
         if (LevelManager.instance.currentLevel + extra > 5)
@@ -339,8 +359,8 @@ public class GameController : MonoBehaviour
             secondaryWeaponContainer.GetChild(i).gameObject.SetActive(true);
         }
 
-        primaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().primaryWeaponIndex).GetComponent<Toggle>().isOn = true;
-        secondaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().secondaryWeaponIndex).GetComponent<Toggle>().isOn = true;
+        primaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().primaryWeaponIndex).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
+        secondaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().secondaryWeaponIndex).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
 
         interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "Level " + LevelManager.instance.currentLevel;
     }

@@ -5004,7 +5004,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8c8a1f0e2763ad64ab1750e9479a4079, type: 3}
   m_Color: {r: 0.8018868, g: 0.08699717, b: 0.08699717, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -5056,10 +5056,12 @@ MonoBehaviour:
   fireChance: 1
   turretRotateAngle: 1
   explosion: {fileID: 293439237774227571, guid: 7ea6d035b9893d94c8aae1b0846fa6b4, type: 3}
+  laysMines: 0
   rb: {fileID: 5658990514939293303}
   turret: {fileID: 6928562127642226516}
   bulletSpawn: {fileID: 3894160753897675274}
   bullet: {fileID: 1362846775, guid: c86b88b3123a04b47882c373aa0fa9a2, type: 3}
+  secondary: {fileID: 0}
   layerMask:
     serializedVersion: 2
     m_Bits: 64

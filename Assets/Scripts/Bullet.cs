@@ -50,6 +50,8 @@ public class Bullet : MonoBehaviour
         StartCoroutine(DestroyBulletAfterLifetime());
 
         CalculateTrajectory();
+
+        AudioManager.instance.Play("DefaultBullet");
     }
 
     private void FixedUpdate()
@@ -90,8 +92,10 @@ public class Bullet : MonoBehaviour
         }
     }
 
-    private void CalculateTrajectory()
+    public void CalculateTrajectory()
     {
+        bounces.Clear();
+
         // Draws ray from the bullet spawn forwards
         Ray2D ray = new(bulletOrigin.position, bulletOrigin.right);
 
@@ -116,6 +120,8 @@ public class Bullet : MonoBehaviour
                 ray = new Ray2D(hit.point + (newDirection * 0.0001f), newDirection);
             }
         }
+
+        Debug.Log("Calculate");
     }
 
     private void MoveBullet()

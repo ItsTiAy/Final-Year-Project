@@ -8,7 +8,6 @@ public class Enemy : MonoBehaviour
     public const int maxRadius = 5;
     [Range(-10, 10)]
     public int aggression = 0;
-
     [SerializeField]
     private float moveSpeed = 2f;
     [SerializeField]
@@ -23,11 +22,14 @@ public class Enemy : MonoBehaviour
     private float turretRotateAngle = 3f;
     [SerializeField]
     private ParticleSystem explosion;
+    [SerializeField]
+    private bool laysMines = false;
 
     public Rigidbody2D rb;
     public Transform turret;
     public Transform bulletSpawn;
     public Rigidbody2D bullet;
+    public SecondaryItem secondary;
     public LayerMask layerMask;
     //public List<Player> players;
 
@@ -36,6 +38,7 @@ public class Enemy : MonoBehaviour
     private Quaternion newRotation;
 
     private bool reloading = false;
+    private bool secondaryCooldown = false;
     //private bool waiting = false;
     //private bool pausing = false;
 
@@ -54,6 +57,8 @@ public class Enemy : MonoBehaviour
 
         newRotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
         GeneratePath(ChooseNewPosition());
+
+        StartCoroutine(SecondaryReload(Random.Range(2, 5)));
     }
 
     private void FixedUpdate()
@@ -66,16 +71,34 @@ public class Enemy : MonoBehaviour
             // Checks if the current positon is equal to the current path node's position
             if (rb.position == new Vector2(path[currentNode].x + 0.5f, path[currentNode].y + 0.5f))
             {
+                if (TooCloseToMine(transform.position))
+                {
+                    bool validPath = false;
+
+                    while (!validPath)
+                    {
+                        do
+                        {
+                            GeneratePath(ChooseNewPosition());
+                        }
+                        while (path == null);
+
+                        if (!TooCloseToMine(new Vector2(path.Last().x + 0.5f, path.Last().y + 0.5f)))
+                        {
+                            validPath = true;
+                        }
+                        
+                    }
+                }
+
                 // Generates new path when reaches the end of the path
                 if (currentNode == path.Count - 1)
                 {
-                    currentNode = 0;
                     do
                     {
                         GeneratePath(ChooseNewPosition());
                     }
                     while (path == null);
-                    //StartCoroutine(Pause());
                 }
                 else
                 {
@@ -94,6 +117,13 @@ public class Enemy : MonoBehaviour
         }
 
         Thinking();
+
+        if (laysMines && !secondaryCooldown)
+        {
+            LayMine();
+
+            StartCoroutine(SecondaryReload(Random.Range(5, 10)));
+        }
     }
 
     private Vector2Int ChooseNewPosition()
@@ -140,6 +170,8 @@ public class Enemy : MonoBehaviour
 
     private void GeneratePath(Vector2Int newPosition)
     {
+        currentNode = 0;
+
         Vector2Int currentPos = Vector2Int.FloorToInt(transform.position);
 
         // Generates the path from the current position to the new position
@@ -212,9 +244,36 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    public void LayMine()
+    {
+        Instantiate(secondary, transform.position, Quaternion.identity, GameController.instance.mineContainer);
+    }
+
+    public bool TooCloseToMine(Vector2 enemyPos)
+    {
+        bool isTooClose = false;
+        Transform closestMine;
+
+        foreach (Transform mine in GameController.instance.mineContainer)
+        {
+            if (Vector2.Distance(mine.position, enemyPos) <= 4)
+            {
+                isTooClose = true;
+                closestMine = mine;
+            }
+        }
+
+        if (isTooClose)
+        {
+
+        }
+
+        return isTooClose;
+    }
+
     private void Fire()
     {
-        Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation);
+        Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation, GameController.instance.bulletContainer);
         StartCoroutine(Reload(reloadSpeed));
     }
 
@@ -287,6 +346,15 @@ public class Enemy : MonoBehaviour
         reloading = false;
     }
 
+    private IEnumerator SecondaryReload(float waitTime)
+    {
+        secondaryCooldown = true;
+
+        yield return new WaitForSeconds(waitTime);
+
+        secondaryCooldown = false;
+    }
+
     /*private IEnumerator Pause()
     {
         pausing = true;
@@ -323,7 +391,9 @@ public class Enemy : MonoBehaviour
 
         if (health <= 0)
         {
-           ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
+            AudioManager.instance.Play("TankExplosion");
+
+            ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
 
             Destroy(gameObject);
 

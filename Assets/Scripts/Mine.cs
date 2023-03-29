@@ -38,6 +38,17 @@ public class Mine : SecondaryItem
             }
         }
 
+        if (instance.tilemaps[2].GetComponent<TilemapCollider2D>().hasTilemapChanges)
+        {
+            // Need to update tilemap collider immediately so the bullets path can be recalculated
+            instance.tilemaps[2].GetComponent<TilemapCollider2D>().ProcessTilemapChanges();
+        }
+
+        foreach (Transform bullet in GameController.instance.bulletContainer)
+        {
+            bullet.GetComponent<Bullet>().CalculateTrajectory();
+        }
+
         List<Enemy> enemiesToDestroy = new List<Enemy>();
 
         foreach (Enemy enemy in GameController.instance.enemies)
@@ -68,6 +79,7 @@ public class Mine : SecondaryItem
             player.DecreaseHealth();
         }
 
+        AudioManager.instance.Play("MineExplosion");
         explosion.Play();
         transform.DetachChildren();
         Destroy(gameObject);
@@ -80,6 +92,11 @@ public class Mine : SecondaryItem
             collision.gameObject.GetComponent<Bullet>().DestroyBullet();
             Explode();
         }
+    }
+
+    public float GetRadius()
+    {
+        return radius;
     }
 
     public new int GetIndex()

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
-using TMPro;
+using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -118,7 +118,7 @@ public class SaveManager : MonoBehaviour
             {
                 DeleteCookie("save" + saveNumber);
 
-                saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<TMP_Text>().text = "Empty";
+                saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<Text>().text = "Empty";
             }
             else
             {
@@ -133,7 +133,7 @@ public class SaveManager : MonoBehaviour
             {
                 File.Delete(filepath);
 
-                saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<TMP_Text>().text = "Empty";
+                saveContainer.transform.GetChild(saveNumber - 1).GetChild(0).GetComponentInChildren<Text>().text = "Empty";
             }
             else
             {
@@ -157,6 +157,7 @@ public class SaveManager : MonoBehaviour
 
     private void InitalizeSaveUI()
     {
+        // For web
         try
         {
             for (int i = 0; i < saveContainer.transform.childCount; i++)
@@ -169,15 +170,16 @@ public class SaveManager : MonoBehaviour
 
                     if (data.endlessUnlocked)
                     {
-                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nEndless";
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<Text>().text = "Slot " + (i + 1) + " | Endless";
                     }
                     else
                     {
-                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<Text>().text = "Slot " + (i + 1) + " | Level: " + data.maxLevelNum;
                     }
                 }
             }
         }
+        // For unity editor
         catch
         {
             for (int i = 0; i < saveContainer.transform.childCount; i++)
@@ -192,11 +194,11 @@ public class SaveManager : MonoBehaviour
 
                     if (data.endlessUnlocked)
                     {
-                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nEndless";
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<Text>().text = "Slot " + (i + 1) + " | Endless";
                     }
                     else
                     {
-                        saveContainer.transform.GetChild(i).GetComponentInChildren<TMP_Text>().text = "Slot " + (i + 1) + "\nLevel: " + data.maxLevelNum;
+                        saveContainer.transform.GetChild(i).GetComponentInChildren<Text>().text = "Slot " + (i + 1) + " | Level: " + data.maxLevelNum;
                     }
                 }
             }

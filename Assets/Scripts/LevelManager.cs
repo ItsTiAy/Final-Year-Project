@@ -302,8 +302,12 @@ public class LevelManager : MonoBehaviour
 
             for (int l = 0; l < chunkNames.Length / 2; l++)
             {
-                DirectoryInfo info = new DirectoryInfo(Application.streamingAssetsPath + "/Chunks");
-                int len = info.GetFiles(chunkNames[counter] + "*.json").Length;
+                //DirectoryInfo info = new DirectoryInfo(Application.streamingAssetsPath + "/Chunks");
+                //int len = info.GetFiles(chunkNames[counter] + "*.json").Length;
+
+                int len = 2;
+
+                Debug.Log("length " + len);
 
                 //string json = File.ReadAllText(Application.streamingAssetsPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json");
                 //ChunkData chunkData = JsonUtility.FromJson<ChunkData>(json);

@@ -59,9 +59,16 @@ public class Player : MonoBehaviour
 
             mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
 
-            if (Input.GetMouseButtonDown(0) && !reloading)
+            if (Input.GetMouseButtonDown(0))
             {
-                Fire();
+                if (!reloading)
+                {
+                    Fire();
+                }
+                else
+                {
+                    AudioManager.instance.Play("FireFail");
+                }
             }
 
             if(Input.GetKeyDown(KeyCode.Space) && !secondaryCooldown)
@@ -144,7 +151,7 @@ public class Player : MonoBehaviour
 
     private void Fire()
     {
-        Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation /*Quaternion.Euler(0, 0, 0)*/);
+        Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation, GameController.instance.bulletContainer);
         ammo--;
 
         GameController.instance.UpdateAmmoUI(ammo);
@@ -153,13 +160,15 @@ public class Player : MonoBehaviour
         {
             StartCoroutine(Reload());
         }
+
+        //AudioManager.instance.Play("DefaultBullet");
     }
 
     private void SecondaryItem()
     {
         if (secondaryItem != null)
         {
-            Instantiate(secondaryItem, transform.position, Quaternion.identity);
+            Instantiate(secondaryItem, transform.position, Quaternion.identity, GameController.instance.mineContainer);
             StartCoroutine(Cooldown());
         }
     }
@@ -177,6 +186,8 @@ public class Player : MonoBehaviour
         GameController.instance.UpdateAmmoUI(ammo);
 
         reloading = false;
+
+        AudioManager.instance.Play("FinishReloading");
     }
 
     private IEnumerator Cooldown()
@@ -200,6 +211,7 @@ public class Player : MonoBehaviour
             var main = exp.main;
             main.useUnscaledTime = true;
 
+            AudioManager.instance.Play("TankExplosion");
             DestroyPlayer();
             GameController.instance.RestartLevel();
         }
