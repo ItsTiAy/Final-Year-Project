@@ -56,7 +56,9 @@ public class Enemy : MonoBehaviour
         maxBulletDistance = bulletClass.BulletSpeed * bulletClass.BulletLifeTime;
 
         newRotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
+        //Debug.Log("dingus");
         GeneratePath(ChooseNewPosition());
+        //Debug.Log("dingus2");
 
         StartCoroutine(SecondaryReload(Random.Range(2, 5)));
     }
@@ -87,7 +89,7 @@ public class Enemy : MonoBehaviour
                         {
                             validPath = true;
                         }
-                        
+
                     }
                 }
 
@@ -134,7 +136,7 @@ public class Enemy : MonoBehaviour
         // Loops until a valid position has been found
         do
         {
-            Player closestPlayer = FindClosestPlayer();
+            GameObject closestPlayer = FindClosestPlayer();
 
             // Direction towards the closest player as a vector
             Vector2 direction = (closestPlayer.transform.position - transform.position);
@@ -158,6 +160,9 @@ public class Enemy : MonoBehaviour
             newPos = Vector2Int.FloorToInt(new Vector2(transform.position.x + Mathf.Cos(theta) * radius, transform.position.y + Mathf.Sin(theta) * radius));
 
             // Checks that the chosed position is within bounds and a walkable square
+
+            //Debug.Log(Pathfinding.open);
+
             if (newPos.x < 11 && newPos.x > -12 && newPos.y < 6 && newPos.y > -7 && Pathfinding.nodes[newPos].IsWalkable())
             {
                 validPos = true;
@@ -228,7 +233,7 @@ public class Enemy : MonoBehaviour
                     Vector2 newDirection = Vector2.Reflect(ray.direction, hit.normal);
                     ray = new Ray2D(hit.point + (newDirection * 0.0001f), newDirection);
                 }
-                else if (hit.transform.CompareTag("Player"))
+                else if (hit.transform.CompareTag("Player") || hit.transform.CompareTag("Agent"))
                 {
                     if (!reloading && FireProbability())
                     {
@@ -365,24 +370,31 @@ public class Enemy : MonoBehaviour
     }
     */
 
-    private Player FindClosestPlayer()
+    private GameObject FindClosestPlayer()
     {
-        Dictionary<float, Player> playerDistances = new Dictionary<float, Player>();
-        List<float> distances = new List<float>();
-
-        // Loops for each player in the game
-        foreach (Player player in GameController.instance.players)
+        if (!GameController.instance.IsTraining())
         {
-            // Adds the player's distance from the enemy to the list of distances
-            distances.Add(Vector2.Distance(player.transform.position, transform.position));
+            Dictionary<float, Player> playerDistances = new Dictionary<float, Player>();
+            List<float> distances = new List<float>();
 
-            // Adds the player and their distance to the dictionary
-            playerDistances.Add(distances.Last(), player);
+            // Loops for each player in the game
+            foreach (Player player in GameController.instance.players)
+            {
+                // Adds the player's distance from the enemy to the list of distances
+                distances.Add(Vector2.Distance(player.transform.position, transform.position));
+
+                // Adds the player and their distance to the dictionary
+                playerDistances.Add(distances.Last(), player);
+            }
+
+            Player closestPlayer = playerDistances[distances.Min()];
+
+            return closestPlayer.gameObject;
         }
-
-        Player closestPlayer = playerDistances[distances.Min()];
-
-        return closestPlayer;
+        else
+        {
+            return GameObject.FindGameObjectWithTag("Agent");
+        }
     }
 
     public void DecreaseHealth()
@@ -391,8 +403,6 @@ public class Enemy : MonoBehaviour
 
         if (health <= 0)
         {
-            AudioManager.instance.Play("TankExplosion");
-
             ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
 
             Destroy(gameObject);
@@ -407,6 +417,8 @@ public class Enemy : MonoBehaviour
                 // End the current level and move on to the next
                 GameController.instance.EndLevel();
             }
+
+            AudioManager.instance.Play("TankExplosion");
         }
     }
 
@@ -422,4 +434,19 @@ public class Enemy : MonoBehaviour
             while (path == null);
         }
     }
+
+    public void GenerateNewPath()
+    {
+        do
+        {
+            GeneratePath(ChooseNewPosition());
+        }
+        while (path == null);
+    }
+
+    public void ResetReloading()
+    {
+        reloading = false;
+    }
+
 }

@@ -209,17 +209,78 @@ public class LevelManager : MonoBehaviour
                     //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
                 }
             }
-
             GameController.instance.enemies.Clear();
-            GameController.instance.players.Clear();
 
-            GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
+            if (!GameController.instance.IsTraining())
+            {
+                //GameController.instance.enemies.Clear();
+
+                GameController.instance.players.Clear();
+
+                GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
+
+            }
 
             foreach (EnemyData enemy in levelData.enemies)
             {
                 GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
+                //Debug.Log(GameController.instance.enemies.Count);
                 //GameController.instance.enemiesRemaining++;
             }
+
+        }
+    }
+
+    public void LoadLevelTraining(int levelNumber)
+    {
+        Pathfinding.Initialize();
+
+        currentLevel = levelNumber;
+
+        ClearLevel();
+
+        // Reads the level data from the json file
+        //string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
+        //levelData = JsonUtility.FromJson<LevelData>(json);
+
+        string path = Application.streamingAssetsPath + "/Levels/level" + levelNumber + ".json";
+        string jsonString = File.ReadAllText(path);
+        levelData = JsonUtility.FromJson<LevelData>(jsonString);
+
+        // Loops for each type of tile in the level
+        for (int i = 0; i < levelData.tiles.Count; i++)
+        {
+            // Clears the current tilemap
+            tilemaps[i].ClearAllTiles();
+            TileData tileData = levelData.tiles[i];
+
+            // Loops for each indiviual tile of the current tile type
+            for (int j = 0; j < tileData.tilePositionsX.Count; j++)
+            {
+                // Sets the tile at the coordinates with the current tile type in the current tilemap
+                tilemaps[i].SetTile(new Vector3Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j]), tiles[i]);
+
+                Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].SetIsWalkable(false);
+                //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
+            }
+        }
+        GameController.instance.enemies.Clear();
+
+        if (!GameController.instance.IsTraining())
+        {
+            //GameController.instance.enemies.Clear();
+
+            GameController.instance.players.Clear();
+
+            GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
+
+        }
+
+        foreach (EnemyData enemy in levelData.enemies)
+        {
+            GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
+            //Debug.Log(GameController.instance.enemies.Count);
+            //GameController.instance.enemiesRemaining++;
         }
     }
 
@@ -243,7 +304,7 @@ public class LevelManager : MonoBehaviour
 
         foreach (GameObject playerObject in playerObjects)
         {
-            if (playerObject != null)
+            if (playerObject != null && !GameController.instance.IsTraining())
             {
                 playerObject.GetComponent<Player>().DestroyPlayer();
             }

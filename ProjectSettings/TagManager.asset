@@ -10,6 +10,7 @@ TagManager:
   - Red
   - Particle
   - Mine
+  - Agent
   layers:
   - Default
   - TransparentFX

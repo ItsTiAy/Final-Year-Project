@@ -51,6 +51,8 @@ public class GameController : MonoBehaviour
 
     public Animator interLevelScreenFade;
 
+    private bool training = true;
+
     private void Awake()
     {
         PauseGame();
@@ -78,19 +80,26 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        endlessUnlocked = SaveManager.instance.GetSaveData().endlessUnlocked;
-        newBulletIndex = SaveManager.instance.GetSaveData().primaryWeaponIndex;
-        Debug.Log(newBulletIndex);
-        UpdateInterLevelScreenUI(true);
-
-        if (endlessUnlocked)
+        if (!training)
         {
-            LevelManager.instance.GenerateLevel();
+            endlessUnlocked = SaveManager.instance.GetSaveData().endlessUnlocked;
+            newBulletIndex = SaveManager.instance.GetSaveData().primaryWeaponIndex;
+            Debug.Log(newBulletIndex);
+            UpdateInterLevelScreenUI(true);
+
+            if (endlessUnlocked)
+            {
+                LevelManager.instance.GenerateLevel();
+            }
+            else
+            {
+                Debug.Log("Not endless");
+                LevelManager.instance.LoadLevel(SaveManager.instance.GetSaveData().maxLevelNum);
+            }
         }
         else
         {
-            Debug.Log("Not endless");
-            LevelManager.instance.LoadLevel(SaveManager.instance.GetSaveData().maxLevelNum);
+            ResumeGame();
         }
     }
 
@@ -404,5 +413,10 @@ public class GameController : MonoBehaviour
     {
         //SaveManager.instance.SaveProgress();
         SceneController.LoadScene(0);
+    }
+
+    public bool IsTraining()
+    {
+        return training;
     }
 }
