@@ -29,7 +29,8 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     private int bulletIndex;
 
-    private Transform bulletOrigin;
+    private Vector2 bulletOriginPos;
+    private Vector2 bulletOriginDir;
 
     private int currentBounce = 0;
     private List<Vector2> bounces = new List<Vector2>();
@@ -41,9 +42,12 @@ public class Bullet : MonoBehaviour
     public int AmmoCapacity => ammoCapacity;
     public float ReloadSpeed => reloadSpeed;
 
+    public int bulletId;
+
     private void Start()
     {
-        bulletOrigin = rb.transform;
+        bulletOriginPos = rb.transform.position;
+        bulletOriginDir = rb.transform.right;
 
         //rb.velocity = bulletSpeed * transform.right;
 
@@ -68,30 +72,19 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!GameController.instance.IsTraining())
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            if (collision.gameObject.CompareTag("Enemy"))
-            {
-                // Decreases enemy health by 1 and then destroys the bullet
-                collision.gameObject.GetComponent<Enemy>().DecreaseHealth();
-                DestroyBullet();
-                Debug.Log("Hit Enemy");
-            }
-            else if (collision.gameObject.CompareTag("Player"))
-            {
-                // Decreases the player's health by 1 and then destroys the bullet
-                collision.gameObject.GetComponent<Player>().DecreaseHealth();
-                DestroyBullet();
-                Debug.Log("Hit self");
-            }
+            // Decreases enemy health by 1 and then destroys the bullet
+            collision.gameObject.GetComponent<Enemy>().DecreaseHealth();
+            DestroyBullet();
+            Debug.Log("Hit Enemy");
         }
-        else
+        else if (collision.gameObject.CompareTag("Player"))
         {
-            if (collision.gameObject.CompareTag("Enemy"))
-            {
-
-                GameObject.FindGameObjectWithTag("Agent").GetComponent<EnemyAgent>().RestartEpisode(1);
-            }
+            // Decreases the player's health by 1 and then destroys the bullet
+            collision.gameObject.GetComponent<Player>().DecreaseHealth();
+            DestroyBullet();
+            Debug.Log("Hit self");
         }
     }
 
@@ -108,7 +101,7 @@ public class Bullet : MonoBehaviour
         bounces.Clear();
 
         // Draws ray from the bullet spawn forwards
-        Ray2D ray = new(bulletOrigin.position, bulletOrigin.right);
+        Ray2D ray = new(bulletOriginPos, bulletOriginDir);
 
         //Debug.DrawRay(ray.origin, ray.direction, Color.green, bulletLifeTime);
 
@@ -131,8 +124,6 @@ public class Bullet : MonoBehaviour
                 ray = new Ray2D(hit.point + (newDirection * 0.0001f), newDirection);
             }
         }
-
-        Debug.Log("Calculate");
     }
 
     private void MoveBullet()

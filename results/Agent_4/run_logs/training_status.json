@@ -1,0 +1,48 @@
+{
+    "Enemy": {
+        "elo": 1230.3416006818973,
+        "checkpoints": [
+            {
+                "steps": 102563,
+                "file_path": "results\\Agent_4\\Enemy\\Enemy-102563.onnx",
+                "reward": null,
+                "creation_time": 1680545286.6763527,
+                "auxillary_file_paths": [
+                    "results\\Agent_4\\Enemy\\Enemy-102563.pt"
+                ]
+            },
+            {
+                "steps": 105605,
+                "file_path": "results\\Agent_4\\Enemy\\Enemy-105605.onnx",
+                "reward": null,
+                "creation_time": 1680547731.6106162,
+                "auxillary_file_paths": [
+                    "results\\Agent_4\\Enemy\\Enemy-105605.pt"
+                ]
+            },
+            {
+                "steps": 130220,
+                "file_path": "results\\Agent_4\\Enemy\\Enemy-130220.onnx",
+                "reward": null,
+                "creation_time": 1680547957.5356126,
+                "auxillary_file_paths": [
+                    "results\\Agent_4\\Enemy\\Enemy-130220.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 130220,
+            "file_path": "results\\Agent_4\\Enemy.onnx",
+            "reward": null,
+            "creation_time": 1680547957.5356126,
+            "auxillary_file_paths": [
+                "results\\Agent_4\\Enemy\\Enemy-130220.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.26.0",
+        "torch_version": "1.7.1+cu110"
+    }
+}

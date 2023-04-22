@@ -10,8 +10,6 @@ behaviors:
       lambd: 0.99
       num_epoch: 3
       learning_rate_schedule: linear
-      beta_schedule: constant
-      epsilon_schedule: linear
     network_settings:
       normalize: false
       hidden_units: 128
@@ -20,12 +18,8 @@ behaviors:
       extrinsic:
         gamma: 0.99
         strength: 1.0
-      gail:
-        strength: 0.5
-        demo_path: C:\Users\thoma\OneDrive - University of Sussex\Year 3\Individual Project\Code\Final Year Project\Demos\AgentDemo.demo
-    behavioral_cloning:
-      strength: 0.5
-      demo_path: C:\Users\thoma\OneDrive - University of Sussex\Year 3\Individual Project\Code\Final Year Project\Demos\AgentDemo.demo
-    max_steps: 500000
+    max_steps: 20000000
     time_horizon: 64
     summary_freq: 10000
+torch_settings:
+  device: cpu

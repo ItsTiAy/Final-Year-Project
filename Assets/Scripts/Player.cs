@@ -76,14 +76,6 @@ public class Player : MonoBehaviour
                 SecondaryItem();
             }
         }
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            left = KeyCode.LeftArrow;
-            right = KeyCode.RightArrow;
-            up = KeyCode.UpArrow;
-            down = KeyCode.DownArrow;
-        }
     }
 
     private void FixedUpdate()

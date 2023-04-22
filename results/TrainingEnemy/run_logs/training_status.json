@@ -1,0 +1,65 @@
+{
+    "Enemy": {
+        "checkpoints": [
+            {
+                "steps": 18499947,
+                "file_path": "results\\TrainingEnemy\\Enemy\\Enemy-18499947.onnx",
+                "reward": null,
+                "creation_time": 1682181215.9948692,
+                "auxillary_file_paths": [
+                    "results\\TrainingEnemy\\Enemy\\Enemy-18499947.pt"
+                ]
+            },
+            {
+                "steps": 18999989,
+                "file_path": "results\\TrainingEnemy\\Enemy\\Enemy-18999989.onnx",
+                "reward": -1.0,
+                "creation_time": 1682184192.7402244,
+                "auxillary_file_paths": [
+                    "results\\TrainingEnemy\\Enemy\\Enemy-18999989.pt"
+                ]
+            },
+            {
+                "steps": 19499962,
+                "file_path": "results\\TrainingEnemy\\Enemy\\Enemy-19499962.onnx",
+                "reward": -1.0,
+                "creation_time": 1682187256.831872,
+                "auxillary_file_paths": [
+                    "results\\TrainingEnemy\\Enemy\\Enemy-19499962.pt"
+                ]
+            },
+            {
+                "steps": 19999992,
+                "file_path": "results\\TrainingEnemy\\Enemy\\Enemy-19999992.onnx",
+                "reward": 1.0,
+                "creation_time": 1682190231.2810638,
+                "auxillary_file_paths": [
+                    "results\\TrainingEnemy\\Enemy\\Enemy-19999992.pt"
+                ]
+            },
+            {
+                "steps": 20000019,
+                "file_path": "results\\TrainingEnemy\\Enemy\\Enemy-20000019.onnx",
+                "reward": 1.0,
+                "creation_time": 1682190231.5025215,
+                "auxillary_file_paths": [
+                    "results\\TrainingEnemy\\Enemy\\Enemy-20000019.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 20000019,
+            "file_path": "results\\TrainingEnemy\\Enemy.onnx",
+            "reward": 1.0,
+            "creation_time": 1682190231.5025215,
+            "auxillary_file_paths": [
+                "results\\TrainingEnemy\\Enemy\\Enemy-20000019.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.26.0",
+        "torch_version": "1.7.1+cu110"
+    }
+}

@@ -73,34 +73,54 @@ public class Enemy : MonoBehaviour
             // Checks if the current positon is equal to the current path node's position
             if (rb.position == new Vector2(path[currentNode].x + 0.5f, path[currentNode].y + 0.5f))
             {
-                if (TooCloseToMine(transform.position))
+                // Generates new path when reaches the end of the path
+                if (currentNode == path.Count - 1)
                 {
-                    bool validPath = false;
+                    if (!TooCloseToMine(transform.position))
+                    {
+                        bool validPath = false;
+                        int counter = 0;
 
-                    while (!validPath)
+                        while (!validPath)
+                        {
+                            validPath = true;
+
+                            do
+                            {
+                                GeneratePath(ChooseNewPosition());
+                            }
+                            while (path == null);
+
+                            foreach (Pathfinding.Node node in path)
+                            {
+                                if (TooCloseToMine(new Vector2(node.x + 0.5f, node.y + 0.5f)))
+                                {
+                                    validPath = false;
+                                }
+                            }
+
+                            counter++;
+
+                            if (counter > 100)
+                            {
+                                do
+                                {
+                                    GeneratePath(ChooseNewPosition());
+                                }
+                                while (path == null);
+
+                                validPath = true;
+                            }
+                        }
+                    }
+                    else
                     {
                         do
                         {
                             GeneratePath(ChooseNewPosition());
                         }
                         while (path == null);
-
-                        if (!TooCloseToMine(new Vector2(path.Last().x + 0.5f, path.Last().y + 0.5f)))
-                        {
-                            validPath = true;
-                        }
-
                     }
-                }
-
-                // Generates new path when reaches the end of the path
-                if (currentNode == path.Count - 1)
-                {
-                    do
-                    {
-                        GeneratePath(ChooseNewPosition());
-                    }
-                    while (path == null);
                 }
                 else
                 {
@@ -268,11 +288,6 @@ public class Enemy : MonoBehaviour
             }
         }
 
-        if (isTooClose)
-        {
-
-        }
-
         return isTooClose;
     }
 
@@ -372,29 +387,22 @@ public class Enemy : MonoBehaviour
 
     private GameObject FindClosestPlayer()
     {
-        if (!GameController.instance.IsTraining())
+        Dictionary<float, Player> playerDistances = new Dictionary<float, Player>();
+        List<float> distances = new List<float>();
+
+        // Loops for each player in the game
+        foreach (Player player in GameController.instance.players)
         {
-            Dictionary<float, Player> playerDistances = new Dictionary<float, Player>();
-            List<float> distances = new List<float>();
+            // Adds the player's distance from the enemy to the list of distances
+            distances.Add(Vector2.Distance(player.transform.position, transform.position));
 
-            // Loops for each player in the game
-            foreach (Player player in GameController.instance.players)
-            {
-                // Adds the player's distance from the enemy to the list of distances
-                distances.Add(Vector2.Distance(player.transform.position, transform.position));
-
-                // Adds the player and their distance to the dictionary
-                playerDistances.Add(distances.Last(), player);
-            }
-
-            Player closestPlayer = playerDistances[distances.Min()];
-
-            return closestPlayer.gameObject;
+            // Adds the player and their distance to the dictionary
+            playerDistances.Add(distances.Last(), player);
         }
-        else
-        {
-            return GameObject.FindGameObjectWithTag("Agent");
-        }
+
+        Player closestPlayer = playerDistances[distances.Min()];
+
+        return closestPlayer.gameObject;
     }
 
     public void DecreaseHealth()
@@ -406,6 +414,11 @@ public class Enemy : MonoBehaviour
             ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
 
             Destroy(gameObject);
+
+            if (SaveManager.instance.GetSaveData().endlessUnlocked)
+            {
+                GameController.instance.IncreaseEndlessScore();
+            }
 
             GameController.instance.enemies.Remove(gameObject.GetComponent<Enemy>());
 

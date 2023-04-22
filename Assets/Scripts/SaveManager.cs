@@ -207,9 +207,16 @@ public class SaveManager : MonoBehaviour
 
     public void SaveProgress()
     {
-        saveData.maxLevelNum = LevelManager.instance.currentLevel + 1;
-        saveData.primaryWeaponIndex = GameController.instance.players[0].bullet.GetComponent<Bullet>().GetBulletIndex();
-        saveData.secondaryWeaponIndex = GameController.instance.players[0].secondaryItem.GetIndex();
+        if (!saveData.endlessUnlocked)
+        {
+            saveData.maxLevelNum = LevelManager.instance.currentLevel + 1;
+            saveData.primaryWeaponIndex = GameController.instance.players[0].bullet.GetComponent<Bullet>().GetBulletIndex();
+            saveData.secondaryWeaponIndex = GameController.instance.players[0].secondaryItem.GetIndex();
+        }
+        else if (GameController.instance.GetEndlessScore() > saveData.endlessScore)
+        {
+            saveData.endlessScore = GameController.instance.GetEndlessScore();
+        }
 
         string json = JsonUtility.ToJson(saveData);
         string save = "save" + slotNumber;
@@ -232,5 +239,6 @@ public class SaveManager : MonoBehaviour
         public int primaryWeaponIndex;
         public int secondaryWeaponIndex;
         public bool endlessUnlocked = false;
+        public int endlessScore;
     }
 }

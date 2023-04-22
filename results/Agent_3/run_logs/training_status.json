@@ -1,0 +1,66 @@
+{
+    "Enemy": {
+        "elo": 1205.148521424262,
+        "checkpoints": [
+            {
+                "steps": 22535,
+                "file_path": "results\\Agent_3\\Enemy\\Enemy-22535.onnx",
+                "reward": null,
+                "creation_time": 1680542560.8408356,
+                "auxillary_file_paths": [
+                    "results\\Agent_3\\Enemy\\Enemy-22535.pt"
+                ]
+            },
+            {
+                "steps": 23687,
+                "file_path": "results\\Agent_3\\Enemy\\Enemy-23687.onnx",
+                "reward": null,
+                "creation_time": 1680542639.6411874,
+                "auxillary_file_paths": [
+                    "results\\Agent_3\\Enemy\\Enemy-23687.pt"
+                ]
+            },
+            {
+                "steps": 41125,
+                "file_path": "results\\Agent_3\\Enemy\\Enemy-41125.onnx",
+                "reward": null,
+                "creation_time": 1680543170.425612,
+                "auxillary_file_paths": [
+                    "results\\Agent_3\\Enemy\\Enemy-41125.pt"
+                ]
+            },
+            {
+                "steps": 51714,
+                "file_path": "results\\Agent_3\\Enemy\\Enemy-51714.onnx",
+                "reward": null,
+                "creation_time": 1680543389.8469596,
+                "auxillary_file_paths": [
+                    "results\\Agent_3\\Enemy\\Enemy-51714.pt"
+                ]
+            },
+            {
+                "steps": 139773,
+                "file_path": "results\\Agent_3\\Enemy\\Enemy-139773.onnx",
+                "reward": null,
+                "creation_time": 1680547325.7597842,
+                "auxillary_file_paths": [
+                    "results\\Agent_3\\Enemy\\Enemy-139773.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 139773,
+            "file_path": "results\\Agent_3\\Enemy.onnx",
+            "reward": null,
+            "creation_time": 1680547325.7597842,
+            "auxillary_file_paths": [
+                "results\\Agent_3\\Enemy\\Enemy-139773.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.26.0",
+        "torch_version": "1.7.1+cu110"
+    }
+}

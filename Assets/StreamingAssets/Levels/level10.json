@@ -248,10 +248,17 @@
     },
     "enemies": [
         {
-            "enemyName": "Red",
+            "enemyName": "White",
             "enemyPosition": {
                 "x": 0.5,
                 "y": 5.5
+            }
+        },
+        {
+            "enemyName": "White",
+            "enemyPosition": {
+                "x": 9.5,
+                "y": -4.5
             }
         }
     ]

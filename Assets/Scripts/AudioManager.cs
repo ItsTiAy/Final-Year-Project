@@ -8,6 +8,7 @@ public class AudioManager : MonoBehaviour
     public static AudioManager instance;
 
     public Sound[] sounds;
+    //public AudioMixerGroup audioMixer;
     private Dictionary<string, Sound> audioSources = new Dictionary<string, Sound>();
 
     private void Awake()
@@ -32,6 +33,7 @@ public class AudioManager : MonoBehaviour
             sound.source.volume = sound.volume;
             sound.source.pitch = sound.pitch;
             sound.source.loop = sound.loop;
+            sound.source.outputAudioMixerGroup = sound.mixerGroup;
 
             audioSources.Add(sound.name, sound);
         }
@@ -47,5 +49,53 @@ public class AudioManager : MonoBehaviour
         {
             sound.source.PlayOneShot(sound.source.clip);
         }
+    }
+
+    public void Stop(string name)
+    {
+        Sound sound = audioSources[name];
+
+        //sound.source.pitch = Random.Range(0.95f, 1.05f);
+
+        if (sound != null)
+        {
+            sound.source.Stop();
+        }
+    }
+
+    public void PlayTrack(int trackNum)
+    {
+        Sound sound = audioSources["Track" + trackNum];
+
+        if (sound != null)
+        {
+            sound.source.Play();
+        }
+    }
+
+    public bool IsPlaying(string name)
+    {
+        Sound sound = audioSources[name];
+
+        return sound.source.isPlaying;
+    }
+
+    public IEnumerator FadeOutTrack(int trackNum)
+    {
+        Sound sound = audioSources["Track" + trackNum];
+
+        float FadeTime = 1;
+
+        float startVolume = sound.source.volume;
+
+        while (sound.source.volume > 0)
+        {
+            sound.source.volume -= startVolume * Time.unscaledDeltaTime / FadeTime;
+
+            yield return null;
+        }
+
+        sound.source.Stop();
+        sound.source.volume = startVolume;
     }
 }

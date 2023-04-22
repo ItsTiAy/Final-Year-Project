@@ -32,7 +32,7 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
     }
 
@@ -210,16 +210,10 @@ public class LevelManager : MonoBehaviour
                 }
             }
             GameController.instance.enemies.Clear();
+            GameController.instance.players.Clear();
 
-            if (!GameController.instance.IsTraining())
-            {
-                //GameController.instance.enemies.Clear();
+            GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
 
-                GameController.instance.players.Clear();
-
-                GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
-
-            }
 
             foreach (EnemyData enemy in levelData.enemies)
             {
@@ -231,6 +225,7 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    /*
     public void LoadLevelTraining(int levelNumber)
     {
         Pathfinding.Initialize();
@@ -284,6 +279,8 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    */
+
     public void LoadNextLevel()
     {
         LoadLevel(currentLevel + 1);
@@ -304,7 +301,7 @@ public class LevelManager : MonoBehaviour
 
         foreach (GameObject playerObject in playerObjects)
         {
-            if (playerObject != null && !GameController.instance.IsTraining())
+            if (playerObject != null)
             {
                 playerObject.GetComponent<Player>().DestroyPlayer();
             }

@@ -1,0 +1,30 @@
+{
+    "Enemy": {
+        "elo": 1146.8066981892243,
+        "checkpoints": [
+            {
+                "steps": 346204,
+                "file_path": "results\\Self_Play_2\\Enemy\\Enemy-346204.onnx",
+                "reward": null,
+                "creation_time": 1680695850.8432114,
+                "auxillary_file_paths": [
+                    "results\\Self_Play_2\\Enemy\\Enemy-346204.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 346204,
+            "file_path": "results\\Self_Play_2\\Enemy.onnx",
+            "reward": null,
+            "creation_time": 1680695850.8432114,
+            "auxillary_file_paths": [
+                "results\\Self_Play_2\\Enemy\\Enemy-346204.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.26.0",
+        "torch_version": "1.7.1+cu110"
+    }
+}

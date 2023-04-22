@@ -1,0 +1,66 @@
+{
+    "Enemy": {
+        "checkpoints": [
+            {
+                "steps": 1999956,
+                "file_path": "results\\NewImitation3\\Enemy\\Enemy-1999956.onnx",
+                "reward": -1.0,
+                "creation_time": 1681840086.4901836,
+                "auxillary_file_paths": [
+                    "results\\NewImitation3\\Enemy\\Enemy-1999956.pt"
+                ]
+            },
+            {
+                "steps": 2499936,
+                "file_path": "results\\NewImitation3\\Enemy\\Enemy-2499936.onnx",
+                "reward": null,
+                "creation_time": 1681842873.4019449,
+                "auxillary_file_paths": [
+                    "results\\NewImitation3\\Enemy\\Enemy-2499936.pt"
+                ]
+            },
+            {
+                "steps": 2999973,
+                "file_path": "results\\NewImitation3\\Enemy\\Enemy-2999973.onnx",
+                "reward": null,
+                "creation_time": 1681845651.0382528,
+                "auxillary_file_paths": [
+                    "results\\NewImitation3\\Enemy\\Enemy-2999973.pt"
+                ]
+            },
+            {
+                "steps": 3084161,
+                "file_path": "results\\NewImitation3\\Enemy\\Enemy-3084161.onnx",
+                "reward": 1.0,
+                "creation_time": 1681846119.3380172,
+                "auxillary_file_paths": [
+                    "results\\NewImitation3\\Enemy\\Enemy-3084161.pt"
+                ]
+            },
+            {
+                "steps": 3117547,
+                "file_path": "results\\NewImitation3\\Enemy\\Enemy-3117547.onnx",
+                "reward": null,
+                "creation_time": 1681846617.6901698,
+                "auxillary_file_paths": [
+                    "results\\NewImitation3\\Enemy\\Enemy-3117547.pt"
+                ]
+            }
+        ],
+        "elo": 1238.301733206591,
+        "final_checkpoint": {
+            "steps": 3117547,
+            "file_path": "results\\NewImitation3\\Enemy.onnx",
+            "reward": null,
+            "creation_time": 1681846617.6901698,
+            "auxillary_file_paths": [
+                "results\\NewImitation3\\Enemy\\Enemy-3117547.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.26.0",
+        "torch_version": "1.7.1+cu110"
+    }
+}

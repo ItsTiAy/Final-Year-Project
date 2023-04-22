@@ -5048,13 +5048,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01df93dfdf73f1849b5a1e60e686d34e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  aggression: 0
-  moveSpeed: 2
+  aggression: 3
+  moveSpeed: 3
   health: 1
-  rotationSpeed: 1
-  reloadSpeed: 5
+  rotationSpeed: 2
+  reloadSpeed: 2
   fireChance: 1
-  turretRotateAngle: 3
+  turretRotateAngle: 2
   explosion: {fileID: 293439237774227571, guid: 7ea6d035b9893d94c8aae1b0846fa6b4, type: 3}
   laysMines: 0
   rb: {fileID: 5658990514939293303}

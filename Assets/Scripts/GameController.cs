@@ -1,8 +1,10 @@
-using System;
+
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,6 +30,7 @@ public class GameController : MonoBehaviour
     public GameObject endlessEndScreen;
     public Transform primaryWeaponContainer;
     public Transform secondaryWeaponContainer;
+    public Transform audioContainer;
     public Text weaponDescription;
 
     public GameObject pauseMenu;
@@ -46,12 +49,15 @@ public class GameController : MonoBehaviour
     private int newBulletIndex;
     private int newSecondaryIndex;
 
+    private int endlessScore;
+    private int randomSongNum;
+
     private Coroutine bulletReload;
     private Coroutine secondaryReload;
 
     public Animator interLevelScreenFade;
 
-    private bool training = true;
+    //private bool training = true;
 
     private void Awake()
     {
@@ -64,7 +70,7 @@ public class GameController : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
 
         players = new List<Player>();
@@ -80,26 +86,20 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        if (!training)
-        {
-            endlessUnlocked = SaveManager.instance.GetSaveData().endlessUnlocked;
-            newBulletIndex = SaveManager.instance.GetSaveData().primaryWeaponIndex;
-            Debug.Log(newBulletIndex);
-            UpdateInterLevelScreenUI(true);
+        endlessUnlocked = SaveManager.instance.GetSaveData().endlessUnlocked;
+        newBulletIndex = SaveManager.instance.GetSaveData().primaryWeaponIndex;
+        Debug.Log(newBulletIndex);
+        UpdateInterLevelScreenUI(true);
 
-            if (endlessUnlocked)
-            {
-                LevelManager.instance.GenerateLevel();
-            }
-            else
-            {
-                Debug.Log("Not endless");
-                LevelManager.instance.LoadLevel(SaveManager.instance.GetSaveData().maxLevelNum);
-            }
+        if (endlessUnlocked)
+        {
+            endlessScore = 0;
+            LevelManager.instance.GenerateLevel();
         }
         else
         {
-            ResumeGame();
+            Debug.Log("Not endless");
+            LevelManager.instance.LoadLevel(SaveManager.instance.GetSaveData().maxLevelNum);
         }
     }
 
@@ -121,11 +121,23 @@ public class GameController : MonoBehaviour
                 }
             }
         }
+
+        /*
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            if (bulletContainer.childCount > 0)
+            {
+                bulletContainer.GetChild(0).GetComponent<Bullet>().CalculateTrajectory();
+            }
+        }
+        */
     }
 
     public void StartLevel()
     {
         //interLevelScreen.SetActive(false);
+
+        randomSongNum = Random.Range(1, 11);
 
         ResetReloadUI();
 
@@ -139,12 +151,26 @@ public class GameController : MonoBehaviour
         SaveManager.instance.GetSaveData().primaryWeaponIndex = newBulletIndex;
         SaveManager.instance.GetSaveData().secondaryWeaponIndex = newSecondaryIndex;
 
+        AudioManager.instance.Play("ButtonClick");
+
         StartCoroutine(StartCountdown());
     }
 
     public void RestartLevel()
     {
         canPause = false;
+
+        if (!endlessUnlocked)
+        {
+            StartCoroutine(AudioManager.instance.FadeOutTrack(LevelManager.instance.currentLevel));
+        }
+        else
+        {
+            StartCoroutine(AudioManager.instance.FadeOutTrack(randomSongNum));
+        }
+
+        //AudioManager.instance.StopEngine();
+
         if (endlessUnlocked)
         {
             EndEndless();
@@ -159,6 +185,16 @@ public class GameController : MonoBehaviour
     {
         canPause = false;
         PauseGame();
+
+        if (!endlessUnlocked)
+        {
+            StartCoroutine(AudioManager.instance.FadeOutTrack(LevelManager.instance.currentLevel));
+        }
+        else
+        {
+            StartCoroutine(AudioManager.instance.FadeOutTrack(randomSongNum));
+        }
+        //AudioManager.instance.StopEngine();
 
         if (endlessUnlocked)
         {
@@ -183,11 +219,14 @@ public class GameController : MonoBehaviour
     {
         canPause = false;
         PauseGame();
+        SaveManager.instance.SaveProgress();
+        endlessEndScreen.transform.GetChild(1).GetComponent<Text>().text = "Tanks Defeated: " + endlessScore + "\nHigh Score: " + SaveManager.instance.GetSaveData().endlessScore; ;
         endlessEndScreen.SetActive(true);
     }
 
     public void RestartEndless()
     {
+        endlessScore = 0;
         canPause = false;
         PauseGame();
         StartCoroutine(TransitionToNextEndlessLevel());
@@ -263,11 +302,15 @@ public class GameController : MonoBehaviour
         //newBullet.GetComponent<Bullet>().GetBulletIndex();
         Debug.Log(index);
         Debug.Log("Switch Primary");
+
+        AudioManager.instance.Play("ButtonClick");
     }
 
     public void SwtichSecondary(int index)
     {
         newSecondaryIndex = index;
+
+        AudioManager.instance.Play("ButtonClick");
         //players[0].ResetBulletClass();
     }
 
@@ -347,7 +390,7 @@ public class GameController : MonoBehaviour
             numPrimaryWeaponsUnlocked = 2;
         }
 
-        if (LevelManager.instance.currentLevel + extra > 7)
+        if (endlessUnlocked)
         {
             numPrimaryWeaponsUnlocked = 3;
         }
@@ -371,7 +414,14 @@ public class GameController : MonoBehaviour
         primaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().primaryWeaponIndex).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
         secondaryWeaponContainer.GetChild(SaveManager.instance.GetSaveData().secondaryWeaponIndex).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
 
-        interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "Level " + LevelManager.instance.currentLevel;
+        string text = "Endless";
+
+        if (!endlessUnlocked)
+        {
+             text = "Level " + LevelManager.instance.currentLevel;
+        }
+
+        interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = text;
     }
 
     private IEnumerator StartCountdown()
@@ -396,6 +446,15 @@ public class GameController : MonoBehaviour
         countdown.gameObject.SetActive(false);
         ResumeGame();
         canPause = true;
+
+        if (!endlessUnlocked)
+        {
+            AudioManager.instance.PlayTrack(LevelManager.instance.currentLevel);
+        }
+        else
+        {
+            AudioManager.instance.PlayTrack(randomSongNum);
+        }
     }
 
     public void ButtonHoverOn(string text)
@@ -415,8 +474,13 @@ public class GameController : MonoBehaviour
         SceneController.LoadScene(0);
     }
 
-    public bool IsTraining()
+    public void IncreaseEndlessScore()
     {
-        return training;
+        endlessScore++;
     }
+
+    public int GetEndlessScore()
+    {
+        return endlessScore;
+    }    
 }

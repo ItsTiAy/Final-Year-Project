@@ -1,0 +1,46 @@
+{
+    "tiles": [
+        {
+            "tileName": "Wall Tiles",
+            "tilePositionsX": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "tilePositionsY": [
+                0,
+                1,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ]
+        },
+        {
+            "tileName": "Hole Tiles",
+            "tilePositionsX": [],
+            "tilePositionsY": []
+        },
+        {
+            "tileName": "Breakable Wall Tiles",
+            "tilePositionsX": [],
+            "tilePositionsY": []
+        }
+    ],
+    "player": {
+        "playerSpawn": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    "enemies": []
+}
