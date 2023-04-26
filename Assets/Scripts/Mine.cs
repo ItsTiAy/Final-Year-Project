@@ -21,6 +21,7 @@ public class Mine : SecondaryItem
 
     public IEnumerator LayMine()
     {
+        // Mine explodes after given duration 
         yield return new WaitForSeconds(duration);
         Explode();
     }
@@ -29,8 +30,10 @@ public class Mine : SecondaryItem
     {
         LevelData levelData = instance.GetLevelData();
 
+        // Checks for breakable walls within the mines radius
         for (int i = 0; i < levelData.tiles[2].tilePositionsX.Count; i++)
         {
+            // Removes the breakable wall if it is within the mines radius
             if (Vector2.Distance(transform.position, new Vector2(levelData.tiles[2].tilePositionsX[i], levelData.tiles[2].tilePositionsY[i])) <= radius)
             {
                 instance.tilemaps[2].SetTile(new Vector3Int(levelData.tiles[2].tilePositionsX[i], levelData.tiles[2].tilePositionsY[i]), null);
@@ -44,6 +47,7 @@ public class Mine : SecondaryItem
             instance.tilemaps[2].GetComponent<TilemapCollider2D>().ProcessTilemapChanges();
         }
 
+        // Recalculates all the bullet's tragectories 
         foreach (Transform bullet in GameController.instance.bulletContainer)
         {
             bullet.GetComponent<Bullet>().CalculateTrajectory();
@@ -51,6 +55,7 @@ public class Mine : SecondaryItem
 
         List<Enemy> enemiesToDestroy = new List<Enemy>();
 
+        // Destroys any enemies within the mines radius
         foreach (Enemy enemy in GameController.instance.enemies)
         {
             if (Vector2.Distance(transform.position, enemy.transform.position) <= radius)
@@ -66,6 +71,7 @@ public class Mine : SecondaryItem
 
         List<Player> playersToDestroy = new List<Player>();
 
+        // Destroys the player if it is within the mines radius
         foreach (Player player in GameController.instance.players)
         {
             if (Vector2.Distance(transform.position, player.transform.position) <= radius)
@@ -87,20 +93,11 @@ public class Mine : SecondaryItem
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // Mine explodes if bullet hits it
         if (collision.gameObject.CompareTag("Bullet"))
         {
             collision.gameObject.GetComponent<Bullet>().DestroyBullet();
             Explode();
         }
-    }
-
-    public float GetRadius()
-    {
-        return radius;
-    }
-
-    public new int GetIndex()
-    {
-        return 0;
     }
 }

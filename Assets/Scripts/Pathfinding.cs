@@ -26,7 +26,7 @@ public static class Pathfinding
     {
         nodes = new Dictionary<Vector2Int, Node>();
 
-        // Need to change to be dynamic rather than hard coded
+        // Adds nodes for all tiles on the map
         for (int x = minX; x < maxX; x++)
         {
             for (int y = minY; y < maxY; y++)
@@ -37,6 +37,7 @@ public static class Pathfinding
         }
     }
 
+    // Finds the shortest path using the A* algorithm
     public static List<Node> FindPath(int startX, int startY, int endX, int endY)
     {
         foreach (KeyValuePair <Vector2Int, Node> node in nodes)
@@ -57,11 +58,9 @@ public static class Pathfinding
         while (open.Count > 0)
         {
             Node currentNode = GetLowestFCostNode(open);
-            //Debug.Log("x: " + currentNode.x + " y: " + currentNode.y);
 
             if (currentNode.x == endNode.x && currentNode.y == endNode.y)
             {
-                //Debug.Log("wombat");
                 return CalculatePath(currentNode);
             }
 
@@ -113,6 +112,7 @@ public static class Pathfinding
     {
         Node lowestFCostNode = nodeList[0];
 
+        // Loops through all the nodes and finds the one with the lowest fcost
         for (int i = 1; i < nodeList.Count; i++)
         {
             if (nodeList[i].fCost < lowestFCostNode.fCost)
@@ -124,13 +124,12 @@ public static class Pathfinding
         return lowestFCostNode;
     }
 
+    // Steps through each node to find the shortest path
     private static List<Node> CalculatePath(Node endNode)
     {
         List<Node> path = new List<Node>();
         path.Add(endNode);
         Node currentNode = endNode;
-
-        //Debug.Log(currentNode.previousNode);
 
         while (currentNode.previousNode != null)
         {
@@ -142,6 +141,7 @@ public static class Pathfinding
         return path;
     }
 
+    // Adds all the nodes around the current node to a list and return it
     private static List<Node> GetNeighbours(Node currentNode)
     {
         List<Node> neighbours = new List<Node>();

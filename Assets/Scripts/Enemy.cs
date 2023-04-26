@@ -45,7 +45,7 @@ public class Enemy : MonoBehaviour
     private int currentNode = 0;
     private List<Pathfinding.Node> path;
 
-    private Quaternion q = Quaternion.identity;
+    //private Quaternion newRot = Quaternion.identity;
 
 
     //private Pathfinding pathfinding;
@@ -56,10 +56,7 @@ public class Enemy : MonoBehaviour
         maxBulletDistance = bulletClass.BulletSpeed * bulletClass.BulletLifeTime;
 
         newRotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
-        //Debug.Log("dingus");
         GeneratePath(ChooseNewPosition());
-        //Debug.Log("dingus2");
-
         StartCoroutine(SecondaryReload(Random.Range(2, 5)));
     }
 
@@ -68,6 +65,7 @@ public class Enemy : MonoBehaviour
         Aim();
         FollowPath();
 
+        // Only calculates path if enemy can move
         if (moveSpeed > 0)
         {
             // Checks if the current positon is equal to the current path node's position
@@ -76,6 +74,7 @@ public class Enemy : MonoBehaviour
                 // Generates new path when reaches the end of the path
                 if (currentNode == path.Count - 1)
                 {
+                    // Checks if the enemy is not within the radius of a mine
                     if (!TooCloseToMine(transform.position))
                     {
                         bool validPath = false;
@@ -91,6 +90,7 @@ public class Enemy : MonoBehaviour
                             }
                             while (path == null);
 
+                            // Path is invalid if any node of the path goes within the radius of a mine
                             foreach (Pathfinding.Node node in path)
                             {
                                 if (TooCloseToMine(new Vector2(node.x + 0.5f, node.y + 0.5f)))
@@ -101,6 +101,7 @@ public class Enemy : MonoBehaviour
 
                             counter++;
 
+                            // Generates a new path without restrictions if one can't be found after 100 attempts
                             if (counter > 100)
                             {
                                 do
@@ -180,9 +181,6 @@ public class Enemy : MonoBehaviour
             newPos = Vector2Int.FloorToInt(new Vector2(transform.position.x + Mathf.Cos(theta) * radius, transform.position.y + Mathf.Sin(theta) * radius));
 
             // Checks that the chosed position is within bounds and a walkable square
-
-            //Debug.Log(Pathfinding.open);
-
             if (newPos.x < 11 && newPos.x > -12 && newPos.y < 6 && newPos.y > -7 && Pathfinding.nodes[newPos].IsWalkable())
             {
                 validPos = true;
@@ -210,20 +208,17 @@ public class Enemy : MonoBehaviour
         rb.MovePosition(Vector2.MoveTowards(rb.position, new Vector2(path[currentNode].x + 0.5f, path[currentNode].y + 0.5f), moveSpeed * Time.deltaTime));
     }
 
+    // Decides whether to shoot or not
     public void Thinking()
     {
-        //MoveTurret();
-
         float currentRayDistance;
-        //float currentTotalDistance = 0;
         float distanceRemaining = maxBulletDistance;
-        //float rayDistance = maxBulletDistance;
 
+        // Casts a ray from the barrel of the gun
         Ray2D ray = new(bulletSpawn.position, bulletSpawn.right);
         Color rayColour = Color.red;
 
-        //Debug.Log(maxBulletDistance);
-
+        // Checks the bullets trajectory
         for (int i = 0; i < bulletClass.MaxBounces + 1; i++)
         {
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, distanceRemaining);
@@ -239,41 +234,35 @@ public class Enemy : MonoBehaviour
 
             distanceRemaining -= currentRayDistance;
 
-            //currentRayDistance = Mathf.Min(hit.distance, maxBulletDistance - currentTotalDistance);
-            //currentTotalDistance += currentRayDistance;
-
-            //hit = Physics2D.Raycast(ray.origin, ray.direction, currentRayDistance);
-
             Debug.DrawRay(ray.origin, ray.direction * currentRayDistance, rayColour);
 
             if (hit)
             {
+                // Ray reflects if it hits a wall
                 if (hit.transform.CompareTag("Wall"))
                 {
                     Vector2 newDirection = Vector2.Reflect(ray.direction, hit.normal);
                     ray = new Ray2D(hit.point + (newDirection * 0.0001f), newDirection);
                 }
-                else if (hit.transform.CompareTag("Player") || hit.transform.CompareTag("Agent"))
+                else if (hit.transform.CompareTag("Player"))
                 {
+                    // Random chance for the enemy to shoot if the ray hits a player
                     if (!reloading && FireProbability())
                     {
                         Fire();
                     }
-
-                    //ray = new Ray2D(hit.point, ray.direction);
-                    //rayColour = Color.blue;
                 }
             }
-
-            //hit = Physics2D.Raycast(ray.origin, ray.direction, currentRayDistance);
         }
     }
 
     public void LayMine()
     {
+        // Creates a new mine object
         Instantiate(secondary, transform.position, Quaternion.identity, GameController.instance.mineContainer);
     }
 
+    // Checks to see if the enemy is within the radius of a mine
     public bool TooCloseToMine(Vector2 enemyPos)
     {
         bool isTooClose = false;
@@ -293,12 +282,14 @@ public class Enemy : MonoBehaviour
 
     private void Fire()
     {
+        // Creates a new bullet object
         Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation, GameController.instance.bulletContainer);
         StartCoroutine(Reload(reloadSpeed));
     }
 
     private bool FireProbability()
     {
+        // Checks to see if the enemy should fire based on the fire chance
         if (Random.value <= fireChance)
         {
             return true;
@@ -310,9 +301,11 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    // Rotates the enemies turret
     private void Aim()
     {
-        if (turret.rotation == q)
+        // If the the current rotation reaches the new rotation, choose new rotation
+        if (turret.rotation == newRotation)
         {
             Vector3 playerPosition = FindClosestPlayer().gameObject.transform.position;
 
@@ -323,39 +316,12 @@ public class Enemy : MonoBehaviour
 
             theta *= Mathf.Rad2Deg;
 
-            q = Quaternion.AngleAxis(theta, Vector3.forward);
+            newRotation = Quaternion.AngleAxis(theta, Vector3.forward);
         }
 
-        turret.rotation = Quaternion.RotateTowards(turret.rotation, q, rotationSpeed);
-
-
-        //Vector3 newDirection = Vector3.RotateTowards(turret.up, targetDirection, 1 * Time.deltaTime, 0.0f);
-        //transform.LookAt
-        //Quaternion targetRotation = Quaternion.LookRotation(targetDirection, Vector2.up);
-
-
-        //turret.rotation = Quaternion.RotateTowards(turret.rotation, angle, rotationSpeed);
+        // Rotate towards the new rotation
+        turret.rotation = Quaternion.RotateTowards(turret.rotation, newRotation, rotationSpeed);
     }
-
-    /*
-    private IEnumerator MoveTurret()
-    {
-        if (turret.rotation == (newRotation))
-        {
-            waiting = true;
-
-            yield return new WaitForSeconds(Random.Range(0, 2));
-
-            waiting = false;
-
-            newRotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
-        }
-        else
-        {
-            turret.rotation = Quaternion.RotateTowards(turret.rotation, newRotation, rotationSpeed);
-        }
-    }
-    */
 
     private IEnumerator Reload(float waitTime)
     {
@@ -374,16 +340,6 @@ public class Enemy : MonoBehaviour
 
         secondaryCooldown = false;
     }
-
-    /*private IEnumerator Pause()
-    {
-        pausing = true;
-
-        yield return new WaitForSeconds(2);
-
-        pausing = false;
-    }
-    */
 
     private GameObject FindClosestPlayer()
     {
@@ -437,6 +393,7 @@ public class Enemy : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        // Recalculate path if bumped into anther enemy
         if (collision.gameObject.CompareTag("Enemy"))
         {
             currentNode = 0;
@@ -448,6 +405,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    /*
     public void GenerateNewPath()
     {
         do
@@ -461,5 +419,5 @@ public class Enemy : MonoBehaviour
     {
         reloading = false;
     }
-
+    */
 }

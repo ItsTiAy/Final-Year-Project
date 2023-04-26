@@ -1,10 +1,5 @@
-
-using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +9,6 @@ public class GameController : MonoBehaviour
 
     public List<Player> players;
     public List<Enemy> enemies;
-    //public Bullet[] primaryWeapons = new Bullet[2];
 
     public Bullet[] bulletTypes = new Bullet[3];
     public SecondaryItem[] secondaryItems = new SecondaryItem[1];
@@ -22,7 +16,6 @@ public class GameController : MonoBehaviour
     public Transform bulletContainer;
     public Transform mineContainer;
 
-    //public int enemiesRemaining;
     public int totalNumLevels;
 
     public GameObject interLevelScreen;
@@ -57,29 +50,14 @@ public class GameController : MonoBehaviour
 
     public Animator interLevelScreenFade;
 
-    //private bool training = true;
-
     private void Awake()
     {
         PauseGame();
 
-        // Checks to make sure there is only 1 instance of the game controller
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
-        {
-            //Destroy(gameObject);
-        }
+        instance = this;
 
         players = new List<Player>();
         enemies = new List<Enemy>();
-
-        //int wombat = Resources.LoadAll("Levels").Length;
-
-        //DirectoryInfo info = new DirectoryInfo(Application.dataPath + "/Levels");
-        //int len = info.GetFiles("*.json").Length;
 
         totalNumLevels = 10;
     }
@@ -121,27 +99,13 @@ public class GameController : MonoBehaviour
                 }
             }
         }
-
-        /*
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            if (bulletContainer.childCount > 0)
-            {
-                bulletContainer.GetChild(0).GetComponent<Bullet>().CalculateTrajectory();
-            }
-        }
-        */
     }
 
     public void StartLevel()
     {
-        //interLevelScreen.SetActive(false);
-
         randomSongNum = Random.Range(1, 11);
 
         ResetReloadUI();
-
-        Debug.Log(newBulletIndex);
 
         players[0].bullet = bulletTypes[newBulletIndex].GetComponent<Rigidbody2D>();
         players[0].ResetBulletClass();
@@ -169,8 +133,6 @@ public class GameController : MonoBehaviour
             StartCoroutine(AudioManager.instance.FadeOutTrack(randomSongNum));
         }
 
-        //AudioManager.instance.StopEngine();
-
         if (endlessUnlocked)
         {
             EndEndless();
@@ -194,7 +156,6 @@ public class GameController : MonoBehaviour
         {
             StartCoroutine(AudioManager.instance.FadeOutTrack(randomSongNum));
         }
-        //AudioManager.instance.StopEngine();
 
         if (endlessUnlocked)
         {
@@ -202,6 +163,7 @@ public class GameController : MonoBehaviour
         }
         else
         {
+            // Set endlessUnlocked to true if all levels have been completed
             if (LevelManager.instance.currentLevel >= totalNumLevels)
             {
                 SaveManager.instance.GetSaveData().endlessUnlocked = true;
@@ -246,8 +208,6 @@ public class GameController : MonoBehaviour
 
     public IEnumerator TransitionToNextEndlessLevel()
     {
-        //canPause = false;
-
         UpdateInterLevelScreenUI(false);
 
         yield return new WaitForSecondsRealtime(1);
@@ -296,13 +256,7 @@ public class GameController : MonoBehaviour
     {
         newBulletIndex = index;
 
-        //players[0].bullet = newBullet;
-        //players[0].ResetBulletClass();
-
-        //newBullet.GetComponent<Bullet>().GetBulletIndex();
-        Debug.Log(index);
         Debug.Log("Switch Primary");
-
         AudioManager.instance.Play("ButtonClick");
     }
 
@@ -311,7 +265,6 @@ public class GameController : MonoBehaviour
         newSecondaryIndex = index;
 
         AudioManager.instance.Play("ButtonClick");
-        //players[0].ResetBulletClass();
     }
 
     public void UpdateAmmoUI(int value) 
@@ -356,6 +309,8 @@ public class GameController : MonoBehaviour
     private IEnumerator AnimateSliderOverTime(float seconds, Slider slider)
     {
         float animationTime = 0f;
+
+        // Changes the slider used for the reloading animation over time
         while (animationTime < seconds)
         {
             animationTime += Time.deltaTime;
@@ -376,6 +331,7 @@ public class GameController : MonoBehaviour
             extra = 1;
         }
 
+        // Sets the controls help text on if the level is the first one
         if (LevelManager.instance.currentLevel + extra == 1)
         {
             interLevelScreen.transform.GetChild(0).GetChild(2).gameObject.SetActive(true);
@@ -385,6 +341,7 @@ public class GameController : MonoBehaviour
             interLevelScreen.transform.GetChild(0).GetChild(2).gameObject.SetActive(false);
         }
 
+        // Sets weapons unlocked depending on the number of levels completed
         if (LevelManager.instance.currentLevel + extra > 5)
         {
             numPrimaryWeaponsUnlocked = 2;
@@ -400,10 +357,10 @@ public class GameController : MonoBehaviour
             numSecondaryWeaponsUnlocked = 1;
         }
 
+        // Sets each weapon select button on for each weapon unlocked
         for (int i = 0; i < numPrimaryWeaponsUnlocked; i++)
         {
             primaryWeaponContainer.GetChild(i).gameObject.SetActive(true);
-            //primaryWeaponContainer.GetChild(i).GetComponent<Button>().OnPointerEnter();
         }
 
         for (int i = 0; i < numSecondaryWeaponsUnlocked; i++)
@@ -424,6 +381,7 @@ public class GameController : MonoBehaviour
         interLevelScreen.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = text;
     }
 
+    // Countdown at the start of each level
     private IEnumerator StartCountdown()
     {
         interLevelScreenFade.SetTrigger("FadeOut");
@@ -470,7 +428,6 @@ public class GameController : MonoBehaviour
 
     public void Exit()
     {
-        //SaveManager.instance.SaveProgress();
         SceneController.LoadScene(0);
     }
 

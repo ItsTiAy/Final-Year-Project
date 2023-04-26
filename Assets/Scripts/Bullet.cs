@@ -9,13 +9,6 @@ public class Bullet : MonoBehaviour
     public Rigidbody2D rb;
     public LayerMask layerMask;
 
-    //[NonSerialized]
-    /*
-    public abstract int MaxBounces { get; }
-    public abstract float BulletLifeTime { get; }
-    public abstract float BulletSpeed { get; }
-    */
-
     [SerializeField]
     private int maxBounces;
     [SerializeField]
@@ -49,8 +42,6 @@ public class Bullet : MonoBehaviour
         bulletOriginPos = rb.transform.position;
         bulletOriginDir = rb.transform.right;
 
-        //rb.velocity = bulletSpeed * transform.right;
-
         StartCoroutine(DestroyBulletAfterLifetime());
 
         CalculateTrajectory();
@@ -65,6 +56,7 @@ public class Bullet : MonoBehaviour
 
     private IEnumerator DestroyBulletAfterLifetime()
     {
+        // Destroys the bullet after a given time
         yield return new WaitForSeconds(BulletLifeTime);
 
         DestroyBullet();
@@ -90,6 +82,7 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // Destroys the bullet if it collides with another bullet
         if (collision.gameObject.CompareTag("Bullet"))
         {
             DestroyBullet();
@@ -98,12 +91,11 @@ public class Bullet : MonoBehaviour
 
     public void CalculateTrajectory()
     {
+        // Clears any previously calculated bounces
         bounces.Clear();
 
         // Draws ray from the bullet spawn forwards
         Ray2D ray = new(bulletOriginPos, bulletOriginDir);
-
-        //Debug.DrawRay(ray.origin, ray.direction, Color.green, bulletLifeTime);
 
         // Loops for max number of bounces + 1 extra for the final destination
         for (int i = 0; i < MaxBounces + 1; i++)
@@ -158,6 +150,7 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject);
     }
 
+    // Returns the number associated with the bullet
     public int GetBulletIndex()
     {
         return bulletIndex;

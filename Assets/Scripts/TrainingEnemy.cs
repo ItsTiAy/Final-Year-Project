@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
+// Copy of the enemy script adjusted for training the agent
 public class TrainingEnemy : MonoBehaviour
 {
     public const int maxRadius = 5;
@@ -45,16 +46,11 @@ public class TrainingEnemy : MonoBehaviour
 
     public bool reloading = false;
     private bool secondaryCooldown = false;
-    //private bool waiting = false;
-    //private bool pausing = false;
 
     private int currentNode = 0;
     private List<Pathfinding.Node> path;
 
     private Quaternion q = Quaternion.identity;
-
-
-    //private Pathfinding pathfinding;
 
     private void Start()
     {
@@ -62,8 +58,6 @@ public class TrainingEnemy : MonoBehaviour
         maxBulletDistance = bulletClass.BulletSpeed * bulletClass.BulletLifeTime;
 
         newRotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
-        //Debug.Log("dingus");
-        //Debug.Log("dingus2");
 
         StartCoroutine(SecondaryReload(Random.Range(2, 5)));
     }
@@ -152,9 +146,6 @@ public class TrainingEnemy : MonoBehaviour
             newPos = Vector2Int.FloorToInt(new Vector2(transform.localPosition.x + Mathf.Cos(theta) * radius, transform.localPosition.y + Mathf.Sin(theta) * radius));
 
             // Checks that the chosed position is within bounds and a walkable square
-
-            //Debug.Log(Pathfinding.open);
-
             if (newPos.x < 11 && newPos.x > -12 && newPos.y < 6 && newPos.y > -7)
             {
                 validPos = true;
@@ -180,23 +171,17 @@ public class TrainingEnemy : MonoBehaviour
     {
         // Moves towards the position chosen
         rb.MovePosition(Vector2.MoveTowards(rb.position, new Vector2(path[currentNode].x + 0.5f, path[currentNode].y + 0.5f) + (Vector2) trainingLevel.position, moveSpeed * Time.deltaTime));
-
-        //Debug.Log(new Vector2(path[currentNode].x + 0.5f + trainingLevel.position.x, path[currentNode].y + 0.5f + trainingLevel.position.y));
     }
 
     public void Thinking()
     {
-        //MoveTurret();
 
         float currentRayDistance;
-        //float currentTotalDistance = 0;
         float distanceRemaining = maxBulletDistance;
-        //float rayDistance = maxBulletDistance;
 
         Ray2D ray = new(bulletSpawn.position, bulletSpawn.right);
         Color rayColour = Color.red;
 
-        //Debug.Log(maxBulletDistance);
 
         for (int i = 0; i < bulletClass.MaxBounces + 1; i++)
         {
@@ -213,11 +198,6 @@ public class TrainingEnemy : MonoBehaviour
 
             distanceRemaining -= currentRayDistance;
 
-            //currentRayDistance = Mathf.Min(hit.distance, maxBulletDistance - currentTotalDistance);
-            //currentTotalDistance += currentRayDistance;
-
-            //hit = Physics2D.Raycast(ray.origin, ray.direction, currentRayDistance);
-
             Debug.DrawRay(ray.origin, ray.direction * currentRayDistance, rayColour);
 
             if (hit)
@@ -233,36 +213,14 @@ public class TrainingEnemy : MonoBehaviour
                     {
                         Fire();
                     }
-
-                    //ray = new Ray2D(hit.point, ray.direction);
-                    //rayColour = Color.blue;
                 }
             }
-
-            //hit = Physics2D.Raycast(ray.origin, ray.direction, currentRayDistance);
         }
     }
 
     public void LayMine()
     {
         Instantiate(secondary, transform.position, Quaternion.identity, GameController.instance.mineContainer);
-    }
-
-    public bool TooCloseToMine(Vector2 enemyPos)
-    {
-        bool isTooClose = false;
-        Transform closestMine;
-
-        foreach (Transform mine in GameController.instance.mineContainer)
-        {
-            if (Vector2.Distance(mine.position, enemyPos) <= 4)
-            {
-                isTooClose = true;
-                closestMine = mine;
-            }
-        }
-
-        return isTooClose;
     }
 
     private void Fire()
@@ -301,35 +259,7 @@ public class TrainingEnemy : MonoBehaviour
         }
 
         turret.rotation = Quaternion.RotateTowards(turret.rotation, q, rotationSpeed);
-
-
-        //Vector3 newDirection = Vector3.RotateTowards(turret.up, targetDirection, 1 * Time.deltaTime, 0.0f);
-        //transform.LookAt
-        //Quaternion targetRotation = Quaternion.LookRotation(targetDirection, Vector2.up);
-
-
-        //turret.rotation = Quaternion.RotateTowards(turret.rotation, angle, rotationSpeed);
     }
-
-    /*
-    private IEnumerator MoveTurret()
-    {
-        if (turret.rotation == (newRotation))
-        {
-            waiting = true;
-
-            yield return new WaitForSeconds(Random.Range(0, 2));
-
-            waiting = false;
-
-            newRotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
-        }
-        else
-        {
-            turret.rotation = Quaternion.RotateTowards(turret.rotation, newRotation, rotationSpeed);
-        }
-    }
-    */
 
     private IEnumerator Reload(float waitTime)
     {
@@ -348,16 +278,6 @@ public class TrainingEnemy : MonoBehaviour
 
         secondaryCooldown = false;
     }
-
-    /*private IEnumerator Pause()
-    {
-        pausing = true;
-
-        yield return new WaitForSeconds(2);
-
-        pausing = false;
-    }
-    */
 
     public void DecreaseHealth()
     {
@@ -382,10 +302,4 @@ public class TrainingEnemy : MonoBehaviour
         }
         while (path == null);
     }
-
-    public void ResetReloading()
-    {
-        reloading = false;
-    }
-
 }

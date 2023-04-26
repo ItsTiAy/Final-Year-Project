@@ -35,7 +35,7 @@ public class SaveManager : MonoBehaviour
         InitalizeSaveUI();
     }
 
-    // NEED TO FIX SAVING STUFF IN FUTURE (maybe)
+    // Loads savedata from the cookie or JSON file into the savedata variable
     public void LoadSave(int saveNumber)
     {
         slotNumber = saveNumber;
@@ -66,27 +66,12 @@ public class SaveManager : MonoBehaviour
 
         Debug.Log("Load save");
         saveData = JsonUtility.FromJson<SaveData>(json);
+
+        // Loads the level scene
         SceneController.LoadScene(1);
-        
-        
-
-
-        /*
-        if (!File.Exists(Application.dataPath + "/Saves/save" + saveNumber + ".json"))
-        {
-            CreateNewSave(saveNumber);
-        }
-        */
-
-        //string json = File.ReadAllText(Application.dataPath + "/Saves/save" + saveNumber + ".json");
-
-        //string path = Application.streamingAssetsPath + "/Saves/save" + saveNumber + ".json";
-        //UnityWebRequest uwr = UnityWebRequest.Get(path);
-        //uwr.SendWebRequest();
-
-        //StartCoroutine(LoadSaveCoroutine(path));
     }
 
+    // Creates a new save file with default values
     private void CreateNewSave(int saveNumber)
     {
         SaveData data = new SaveData();
@@ -96,6 +81,7 @@ public class SaveManager : MonoBehaviour
         string json = JsonUtility.ToJson(data, false);
         string save = "save" + saveNumber;
 
+        // Sets a cookie for the web and JSON file for the editor
         try
         {
             SetCookie(save, json);
@@ -108,6 +94,7 @@ public class SaveManager : MonoBehaviour
         Debug.Log("Save");
     }
 
+    // Deletes the cookie or JSON file that has the relevant save number
     public void DeleteSave(int saveNumber)
     {
         try
@@ -147,6 +134,7 @@ public class SaveManager : MonoBehaviour
         return saveData;
     }
 
+    /*
     private IEnumerator LoadSaveCoroutine(string path)
     {
         UnityWebRequest uwr = UnityWebRequest.Get(path);
@@ -154,6 +142,7 @@ public class SaveManager : MonoBehaviour
         saveData = JsonUtility.FromJson<SaveData>(uwr.downloadHandler.text);
         SceneController.LoadScene(1);
     }
+    */
 
     private void InitalizeSaveUI()
     {
@@ -168,6 +157,7 @@ public class SaveManager : MonoBehaviour
                 {
                     SaveData data = JsonUtility.FromJson<SaveData>(json);
 
+                    // Sets the text that appears on the different save slots
                     if (data.endlessUnlocked)
                     {
                         saveContainer.transform.GetChild(i).GetComponentInChildren<Text>().text = "Slot " + (i + 1) + " | Endless";
@@ -192,6 +182,7 @@ public class SaveManager : MonoBehaviour
 
                     SaveData data = JsonUtility.FromJson<SaveData>(json);
 
+                    // Sets the text that appears on the different save slots
                     if (data.endlessUnlocked)
                     {
                         saveContainer.transform.GetChild(i).GetComponentInChildren<Text>().text = "Slot " + (i + 1) + " | Endless";
@@ -205,6 +196,7 @@ public class SaveManager : MonoBehaviour
         }
     }
 
+    // Gets all the save information and saves it 
     public void SaveProgress()
     {
         if (!saveData.endlessUnlocked)
@@ -218,9 +210,11 @@ public class SaveManager : MonoBehaviour
             saveData.endlessScore = GameController.instance.GetEndlessScore();
         }
 
+        // Stores the class into the JSON format
         string json = JsonUtility.ToJson(saveData);
         string save = "save" + slotNumber;
 
+        // Stores as cookie or JSON file
         try
         {
             SetCookie(save, json);

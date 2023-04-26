@@ -25,15 +25,7 @@ public class LevelManager : MonoBehaviour
 
     private void Awake()
     {
-        // Checks to make sure there is only 1 instance of the level manager
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
-        {
-            //Destroy(gameObject);
-        }
+        instance = this;
     }
 
     private void Start()
@@ -51,17 +43,15 @@ public class LevelManager : MonoBehaviour
         {
             Debug.Log("No loaded save data");  
         }
-
-        //StartCoroutine(GameController.instance.TransitionToNextLevel());
-        //LoadLevel(currentLevel);
-        //LoadLevel(1);
-        //GenerateLevel();
     }
 
+    // Used for saving levels and chunks
+
+    /*
     private void Update()
     {
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.S)) SaveLevel();
-        //if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.L)) SaveChunk();
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.L)) SaveChunk();
         if (Input.GetKeyDown(KeyCode.Alpha2)) SaveChunk("LCorner");
         if (Input.GetKeyDown(KeyCode.Alpha4)) SaveChunk("RCorner");
         if (Input.GetKeyDown(KeyCode.Alpha3)) SaveChunk("TMiddle");
@@ -69,7 +59,9 @@ public class LevelManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha5)) SaveChunk("RMiddle");
         if (Input.GetKeyDown(KeyCode.Alpha6)) SaveChunk("Middle");
     }
+    */
 
+    // Saves the tile, player and enemy position in the scene to a JSON file
     public void SaveLevel()
     {
         Debug.Log("Save Level");
@@ -124,6 +116,8 @@ public class LevelManager : MonoBehaviour
         File.WriteAllText(Application.dataPath + "/Levels/" + level + ".json", json);
     }
 
+    // Saves the tile, player and enemy position in the scene in a chunk to a JSON file
+
     public void SaveChunk(string chunkType)
     {
         Debug.Log("Save Chunk");
@@ -172,6 +166,7 @@ public class LevelManager : MonoBehaviour
         StartCoroutine(LoadLevelCoroutine(levelNumber));
     }
 
+    // Loads a level into the scene from the data stored in the JSON file
     public IEnumerator LoadLevelCoroutine(int levelNumber)
     {
         Pathfinding.Initialize();
@@ -181,9 +176,7 @@ public class LevelManager : MonoBehaviour
         ClearLevel();
 
         // Reads the level data from the json file
-        //string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
-        //levelData = JsonUtility.FromJson<LevelData>(json);
-
+        // Uses a web request for when the game is being ran in a browser
         string path = Application.streamingAssetsPath + "/Levels/level" + levelNumber + ".json";
         UnityWebRequest uwr = UnityWebRequest.Get(path);
         yield return uwr.SendWebRequest();
@@ -206,80 +199,23 @@ public class LevelManager : MonoBehaviour
                     tilemaps[i].SetTile(new Vector3Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j]), tiles[i]);
 
                     Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].SetIsWalkable(false);
-                    //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
                 }
             }
+
             GameController.instance.enemies.Clear();
             GameController.instance.players.Clear();
 
+            // Creates a new player object
             GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
 
-
+            // Creates all the enemy objects
             foreach (EnemyData enemy in levelData.enemies)
             {
                 GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
-                //Debug.Log(GameController.instance.enemies.Count);
-                //GameController.instance.enemiesRemaining++;
             }
 
         }
     }
-
-    /*
-    public void LoadLevelTraining(int levelNumber)
-    {
-        Pathfinding.Initialize();
-
-        currentLevel = levelNumber;
-
-        ClearLevel();
-
-        // Reads the level data from the json file
-        //string json = File.ReadAllText(Application.dataPath + "/Levels/level" + levelNumber + ".json");
-        //levelData = JsonUtility.FromJson<LevelData>(json);
-
-        string path = Application.streamingAssetsPath + "/Levels/level" + levelNumber + ".json";
-        string jsonString = File.ReadAllText(path);
-        levelData = JsonUtility.FromJson<LevelData>(jsonString);
-
-        // Loops for each type of tile in the level
-        for (int i = 0; i < levelData.tiles.Count; i++)
-        {
-            // Clears the current tilemap
-            tilemaps[i].ClearAllTiles();
-            TileData tileData = levelData.tiles[i];
-
-            // Loops for each indiviual tile of the current tile type
-            for (int j = 0; j < tileData.tilePositionsX.Count; j++)
-            {
-                // Sets the tile at the coordinates with the current tile type in the current tilemap
-                tilemaps[i].SetTile(new Vector3Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j]), tiles[i]);
-
-                Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].SetIsWalkable(false);
-                //Debug.Log(Pathfinding.nodes[new Vector2Int(tileData.tilePositionsX[j], tileData.tilePositionsY[j])].IsWalkable());
-            }
-        }
-        GameController.instance.enemies.Clear();
-
-        if (!GameController.instance.IsTraining())
-        {
-            //GameController.instance.enemies.Clear();
-
-            GameController.instance.players.Clear();
-
-            GameController.instance.players.Add(Instantiate(player, levelData.player.playerSpawn, Quaternion.identity).GetComponent<Player>());
-
-        }
-
-        foreach (EnemyData enemy in levelData.enemies)
-        {
-            GameController.instance.enemies.Add(Instantiate(enemiesDict[enemy.enemyName], enemy.enemyPosition, Quaternion.identity).GetComponent<Enemy>());
-            //Debug.Log(GameController.instance.enemies.Count);
-            //GameController.instance.enemiesRemaining++;
-        }
-    }
-
-    */
 
     public void LoadNextLevel()
     {
@@ -291,6 +227,7 @@ public class LevelManager : MonoBehaviour
         LoadLevel(currentLevel);
     }
 
+    // Removes all instantiated objects from the scene
     private void ClearLevel()
     {
         GameObject[] enemyObjects = GameObject.FindGameObjectsWithTag("Enemy");
@@ -360,15 +297,7 @@ public class LevelManager : MonoBehaviour
 
             for (int l = 0; l < chunkNames.Length / 2; l++)
             {
-                //DirectoryInfo info = new DirectoryInfo(Application.streamingAssetsPath + "/Chunks");
-                //int len = info.GetFiles(chunkNames[counter] + "*.json").Length;
-
                 int len = 2;
-
-                Debug.Log("length " + len);
-
-                //string json = File.ReadAllText(Application.streamingAssetsPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json");
-                //ChunkData chunkData = JsonUtility.FromJson<ChunkData>(json);
 
                 string path = Application.streamingAssetsPath + "/Chunks/" + chunkNames[counter] + Random.Range(1, len + 1) + ".json";
                 UnityWebRequest uwr = UnityWebRequest.Get(path);

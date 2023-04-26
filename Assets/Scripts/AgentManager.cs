@@ -16,6 +16,7 @@ public class AgentManager : MonoBehaviour
         ResetScene();
     }
 
+    // Adds or subtracts rewards from the agent
     public void TargetHit(int teamNumber)
     {
         // 1 agent hit, 2 enemy hit
@@ -46,9 +47,11 @@ public class AgentManager : MonoBehaviour
             Destroy(bullet.gameObject);
         }
 
+        // Sets agent and target to random positions
         agent1.transform.localPosition = new Vector3(Random.Range(-11, 11) + 0.5f, Random.Range(-6, 7) + 0.5f);
         target.transform.localPosition = new Vector3(Random.Range(-11, 11) + 0.5f, Random.Range(-6, 7) + 0.5f);
 
+        // Resets the turret positions
         agent1.GetComponent<EnemyAgent2>().turret.rotation = Quaternion.identity;
         target.turret.rotation = Quaternion.identity;
 

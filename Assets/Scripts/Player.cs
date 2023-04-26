@@ -31,34 +31,32 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
+        // Assigns the bullet and secondary item from the save data
         bulletClass = GameController.instance.bulletTypes[SaveManager.instance.GetSaveData().primaryWeaponIndex];
         secondaryItem = GameController.instance.secondaryItems[SaveManager.instance.GetSaveData().secondaryWeaponIndex];
+
         ammo = bulletClass.AmmoCapacity;
 
         GameController.instance.UpdateAmmoUI(ammo);
 
-        //GameController.instance.primaryWeapons[0];
         bullet = bulletClass.rb;
         maxBulletDistance = bulletClass.BulletSpeed * bulletClass.BulletLifeTime;
-        //Debug.Log(bulletClass.BulletSpeed);
-        //Debug.Log(bulletClass.BulletLifeTime);
-        cam = Camera.main;
-        //GameController.instance.players.Add(this);
 
-        //Debug.Log(moveSpeed);
+        cam = Camera.main;
     }
 
     void Update()
     {
         if (!GameController.isPaused)
         {
+            // Gets the keys down used for movement
             movement.x = Convert.ToInt32(Input.GetKey(right)) - Convert.ToInt32(Input.GetKey(left));
             movement.y = Convert.ToInt32(Input.GetKey(up)) - Convert.ToInt32(Input.GetKey(down));
-            //movement.x = Input.GetAxisRaw("Horizontal");
-            //movement.y = Input.GetAxisRaw("Vertical");
 
+            // Gets the mouse position
             mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
 
+            // Fires a bullet on mouse click if not reloading
             if (Input.GetMouseButtonDown(0))
             {
                 if (!reloading)
@@ -71,6 +69,7 @@ public class Player : MonoBehaviour
                 }
             }
 
+            // Lays a mine on space bar press if not reloading secondary item
             if(Input.GetKeyDown(KeyCode.Space) && !secondaryCooldown)
             {
                 SecondaryItem();
@@ -110,16 +109,12 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Moves the player in the input direction at the movement speed
     private void Move()
     {
-        //rb.velocity = moveSpeed * Time.fixedDeltaTime * movement.normalized;
-        //rb.MovePosition(rb.position + (movement / 16));
-
+        // Moves the player in the input direction at the movement speed
         rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * movement.normalized);
 
         // Rotates the tank towards the directon it is going in
-
         if (movement != Vector2.zero)
         {
             Quaternion targetRotationPos = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 90) * movement);
@@ -135,36 +130,38 @@ public class Player : MonoBehaviour
 
     }
 
-    // Points the turret towards the mouse 
     private void Aim()
     {
+        // Points the turret towards the mouse 
         turret.right = mousePos - new Vector2(turret.position.x, turret.position.y);
     }
 
     private void Fire()
     {
+        // Creates a new bullet object
         Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation, GameController.instance.bulletContainer);
         ammo--;
 
         GameController.instance.UpdateAmmoUI(ammo);
 
+        // Reloads if ammo runs out
         if (ammo <= 0)
         {
             StartCoroutine(Reload());
         }
-
-        //AudioManager.instance.Play("DefaultBullet");
     }
 
     private void SecondaryItem()
     {
         if (secondaryItem != null)
         {
+            // Creates a new mine object
             Instantiate(secondaryItem, transform.position, Quaternion.identity, GameController.instance.mineContainer);
             StartCoroutine(Cooldown());
         }
     }
 
+    // Starts timer for reloading
     private IEnumerator Reload()
     {
         reloading = true;
@@ -182,6 +179,7 @@ public class Player : MonoBehaviour
         AudioManager.instance.Play("FinishReloading");
     }
 
+    // Starts timer for secondary reloading
     private IEnumerator Cooldown()
     {
         secondaryCooldown = true;
@@ -199,6 +197,7 @@ public class Player : MonoBehaviour
 
         if (health <= 0)
         {
+            // Plays particle effect on death
             ParticleSystem exp = Instantiate(explosion, transform.position, Quaternion.identity);
             var main = exp.main;
             main.useUnscaledTime = true;

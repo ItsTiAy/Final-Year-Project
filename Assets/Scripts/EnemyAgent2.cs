@@ -28,6 +28,7 @@ public class EnemyAgent2 : Agent
 
     public override void Initialize()
     {
+        // Sets the existential value 
         existential = 1 / MaxStep;
     }
 
@@ -72,9 +73,11 @@ public class EnemyAgent2 : Agent
                 break;
         }
 
+        // Rotates the turret based on the actions received
         turret.Rotate(rotateDir, Time.fixedDeltaTime * 100f);
+        // Moves the agent based on the actions received
         rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * movement.normalized);
-
+        // Fires based on the actions received
         if (fire && !reloading)
         {
             Rigidbody2D b = Instantiate(bullet, bulletSpawn.position, bulletSpawn.rotation, bulletContainer);
@@ -85,13 +88,7 @@ public class EnemyAgent2 : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        //Debug.Log("wombat");
-
         Vector2 directionToTarget = (target.transform.localPosition - transform.localPosition).normalized;
-
-        //Color rayColour = Color.red;
-        //Debug.DrawRay(transform.position, directionToTarget * 10, Color.blue);
-
 
         sensor.AddObservation(transform.localPosition);
         sensor.AddObservation(target.transform.localPosition);
@@ -104,15 +101,16 @@ public class EnemyAgent2 : Agent
 
         int numBulletAdded = 0;
 
+        // Observations for the bullets currently in the scene
         foreach (Bullet b in bullets)
         {
+            // Max of 10 bullets added to the observations at a time
             if (numBulletAdded >= 10)
             {
                 break;
             }
 
-            //Vector2 directionToBullet = (b.transform.localPosition - transform.localPosition).normalized;
-
+            // Gets the direction the bullet is in from the agent's current position and the direction the bullet is going in
             float[] bulletObservation = new float[]
             {
                 (b.transform.localPosition - transform.localPosition).normalized.x,
@@ -128,10 +126,12 @@ public class EnemyAgent2 : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        // Small negative reward over time
         AddReward(-existential);
         ControlAgent(actions.DiscreteActions);
     }
 
+    // Used to test that the actions work properly
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         ActionSegment<int> discreteActions = actionsOut.DiscreteActions;

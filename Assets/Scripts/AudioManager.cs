@@ -8,7 +8,6 @@ public class AudioManager : MonoBehaviour
     public static AudioManager instance;
 
     public Sound[] sounds;
-    //public AudioMixerGroup audioMixer;
     private Dictionary<string, Sound> audioSources = new Dictionary<string, Sound>();
 
     private void Awake()
@@ -25,6 +24,7 @@ public class AudioManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        // Sets all the sounds values from the editor
         foreach (Sound sound in sounds)
         {
             sound.source = gameObject.AddComponent<AudioSource>();
@@ -43,8 +43,6 @@ public class AudioManager : MonoBehaviour
     {
         Sound sound = audioSources[name];
 
-        //sound.source.pitch = Random.Range(0.95f, 1.05f);
-
         if (sound != null)
         {
             sound.source.PlayOneShot(sound.source.clip);
@@ -54,8 +52,6 @@ public class AudioManager : MonoBehaviour
     public void Stop(string name)
     {
         Sound sound = audioSources[name];
-
-        //sound.source.pitch = Random.Range(0.95f, 1.05f);
 
         if (sound != null)
         {
@@ -88,6 +84,7 @@ public class AudioManager : MonoBehaviour
 
         float startVolume = sound.source.volume;
 
+        // Lowers volume of sound over time
         while (sound.source.volume > 0)
         {
             sound.source.volume -= startVolume * Time.unscaledDeltaTime / FadeTime;
